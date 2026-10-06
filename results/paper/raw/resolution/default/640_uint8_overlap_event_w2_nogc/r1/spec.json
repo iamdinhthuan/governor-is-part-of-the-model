@@ -1,0 +1,27 @@
+{
+  "model": "y26n_640",
+  "rung": "uint8_overlap_event_w2_nogc",
+  "limit": 0,
+  "fps": 0.0,
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/jetson_fast_eval_v2.py",
+    "--engine",
+    "/tmp/yolo26n_84172_uint8_fp16_opt3.engine",
+    "--memory",
+    "pinned",
+    "--prefetch",
+    "--overlap",
+    "--workers",
+    "2",
+    "--no-gc",
+    "--annotations",
+    "/tmp/instances_val2017.json",
+    "--images-dir",
+    "/tmp/yolo26-coco-val/val2017",
+    "--predictions",
+    "/tmp/paper/resolution2/default/640_uint8_overlap_event_w2_nogc/r1/predictions.json",
+    "--output",
+    "/tmp/paper/resolution2/default/640_uint8_overlap_event_w2_nogc/r1/report.json"
+  ]
+}

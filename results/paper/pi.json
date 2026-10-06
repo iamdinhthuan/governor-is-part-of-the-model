@@ -1,0 +1,1858 @@
+{
+  "bench|hailortcli_ondemand": {
+    "phase": "bench",
+    "condition": "hailortcli_ondemand",
+    "reps": 1,
+    "images_per_s": null,
+    "latency_median_ms": null,
+    "latency_p95_ms": null,
+    "npu_median_ms": null,
+    "cpu_ms_per_image": null,
+    "power_w": {
+      "mean": 2.4078006644518273,
+      "std": 0.0,
+      "n": 1
+    },
+    "mj_per_image_soc": null,
+    "cpu_mhz": {
+      "mean": 1890.5315614617941,
+      "std": 0.0,
+      "n": 1
+    },
+    "temp_c_max": {
+      "mean": 55.1,
+      "std": 0.0,
+      "n": 1
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": null,
+        "images_per_s": null,
+        "latency_median_ms": null,
+        "latency_p95_ms": null,
+        "npu_median_ms": null,
+        "cpu_ms_per_image": null,
+        "predictions": null,
+        "predictions_sha256": null,
+        "power_w": 2.4078006644518273,
+        "mj_per_image_soc": null,
+        "cpu_mhz": 1890.5315614617941,
+        "temp_c_max": 55.1,
+        "extra": {}
+      }
+    ]
+  },
+  "bench|hailortcli_performance": {
+    "phase": "bench",
+    "condition": "hailortcli_performance",
+    "reps": 1,
+    "images_per_s": null,
+    "latency_median_ms": null,
+    "latency_p95_ms": null,
+    "npu_median_ms": null,
+    "cpu_ms_per_image": null,
+    "power_w": {
+      "mean": 2.641328903654485,
+      "std": 0.0,
+      "n": 1
+    },
+    "mj_per_image_soc": null,
+    "cpu_mhz": {
+      "mean": 2400.0,
+      "std": 0.0,
+      "n": 1
+    },
+    "temp_c_max": {
+      "mean": 57.9,
+      "std": 0.0,
+      "n": 1
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": null,
+        "images_per_s": null,
+        "latency_median_ms": null,
+        "latency_p95_ms": null,
+        "npu_median_ms": null,
+        "cpu_ms_per_image": null,
+        "predictions": null,
+        "predictions_sha256": null,
+        "power_w": 2.641328903654485,
+        "mj_per_image_soc": null,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 57.9,
+        "extra": {}
+      }
+    ]
+  },
+  "cpufreq|seq": {
+    "phase": "cpufreq",
+    "condition": "seq",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 67.67478757924982,
+      "std": 0.09186832232105813,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 14.617468026699498,
+      "std": 0.00882824187885759,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 17.1076098078629,
+      "std": 0.09152558173836062,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 6.875871491502039,
+      "std": 0.001793237274752819,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 11.680097823737373,
+      "std": 0.023200295627357242,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 2.2893738579443554,
+      "std": 0.002541516347048368,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 33.80937549766868,
+      "std": 0.019473811801560967,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2217.857142857143,
+      "std": 6.493837786406878,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 57.05,
+      "std": 2.7577164466275343,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 2000,
+        "images_per_s": 67.73974829293927,
+        "latency_median_ms": 14.611225517001003,
+        "latency_p95_ms": 17.04289144836366,
+        "npu_median_ms": 6.877139501739293,
+        "cpu_ms_per_image": 11.663692737373736,
+        "predictions": 13133,
+        "predictions_sha256": null,
+        "power_w": 2.29117098138785,
+        "mj_per_image_soc": 33.82314556204911,
+        "cpu_mhz": 2222.4489795918366,
+        "temp_c_max": 55.1,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 2000,
+        "images_per_s": 67.60982686556036,
+        "latency_median_ms": 14.623710536397994,
+        "latency_p95_ms": 17.17232816736214,
+        "npu_median_ms": 6.874603481264785,
+        "cpu_ms_per_image": 11.69650291010101,
+        "predictions": 13133,
+        "predictions_sha256": null,
+        "power_w": 2.287576734500861,
+        "mj_per_image_soc": 33.795605433288245,
+        "cpu_mhz": 2213.265306122449,
+        "temp_c_max": 59.0,
+        "extra": {}
+      }
+    ]
+  },
+  "cpufreq|seq_busy": {
+    "phase": "cpufreq",
+    "condition": "seq_busy",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 72.91608172727737,
+      "std": 0.01533593252344535,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 13.561378247686662,
+      "std": 0.008948776103334301,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 15.85966782149626,
+      "std": 0.030401091883498845,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 6.42021800740622,
+      "std": 0.00321522008313038,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 10.635271743939395,
+      "std": 0.00317597867869114,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 3.523593860586595,
+      "std": 0.04906407764206587,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 48.284761496876115,
+      "std": 0.6073741852252147,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2400.0,
+      "std": 0.0,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 61.650000000000006,
+      "std": 0.7778174593052033,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 2000,
+        "images_per_s": 72.90523758539422,
+        "latency_median_ms": 13.56770598795265,
+        "latency_p95_ms": 15.881164639722556,
+        "npu_median_ms": 6.417944503482431,
+        "cpu_ms_per_image": 10.637517500000001,
+        "predictions": 13133,
+        "predictions_sha256": null,
+        "power_w": 3.4889003185732266,
+        "mj_per_image_soc": 47.855283091785715,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 62.2,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 2000,
+        "images_per_s": 72.92692586916051,
+        "latency_median_ms": 13.555050507420674,
+        "latency_p95_ms": 15.838171003269961,
+        "npu_median_ms": 6.4224915113300085,
+        "cpu_ms_per_image": 10.633025987878788,
+        "predictions": 13133,
+        "predictions_sha256": null,
+        "power_w": 3.5582874025999627,
+        "mj_per_image_soc": 48.71423990196652,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 61.1,
+        "extra": {}
+      }
+    ]
+  },
+  "idle|ondemand": {
+    "phase": "idle",
+    "condition": "ondemand",
+    "reps": 1,
+    "images_per_s": null,
+    "latency_median_ms": null,
+    "latency_p95_ms": null,
+    "npu_median_ms": null,
+    "cpu_ms_per_image": null,
+    "power_w": {
+      "mean": 1.5343076923076922,
+      "std": 0.0,
+      "n": 1
+    },
+    "mj_per_image_soc": null,
+    "cpu_mhz": {
+      "mean": 1501.3377926421404,
+      "std": 0.0,
+      "n": 1
+    },
+    "temp_c_max": {
+      "mean": 49.0,
+      "std": 0.0,
+      "n": 1
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": null,
+        "images_per_s": null,
+        "latency_median_ms": null,
+        "latency_p95_ms": null,
+        "npu_median_ms": null,
+        "cpu_ms_per_image": null,
+        "predictions": null,
+        "predictions_sha256": null,
+        "power_w": 1.5343076923076922,
+        "mj_per_image_soc": null,
+        "cpu_mhz": 1501.3377926421404,
+        "temp_c_max": 49.0,
+        "extra": {}
+      }
+    ]
+  },
+  "idle|performance": {
+    "phase": "idle",
+    "condition": "performance",
+    "reps": 1,
+    "images_per_s": null,
+    "latency_median_ms": null,
+    "latency_p95_ms": null,
+    "npu_median_ms": null,
+    "cpu_ms_per_image": null,
+    "power_w": {
+      "mean": 1.747,
+      "std": 0.0,
+      "n": 1
+    },
+    "mj_per_image_soc": null,
+    "cpu_mhz": {
+      "mean": 2400.0,
+      "std": 0.0,
+      "n": 1
+    },
+    "temp_c_max": {
+      "mean": 50.1,
+      "std": 0.0,
+      "n": 1
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": null,
+        "images_per_s": null,
+        "latency_median_ms": null,
+        "latency_p95_ms": null,
+        "npu_median_ms": null,
+        "cpu_ms_per_image": null,
+        "predictions": null,
+        "predictions_sha256": null,
+        "power_w": 1.747,
+        "mj_per_image_soc": null,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 50.1,
+        "extra": {}
+      }
+    ]
+  },
+  "ladder_ondemand|full_w1": {
+    "phase": "ladder_ondemand",
+    "condition": "full_w1",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 149.82999829937,
+      "std": 0.004669477724589093,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 14.645480245235376,
+      "std": 0.02797914834082843,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 16.66550960362656,
+      "std": 0.02632812169462289,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 6.503733224235475,
+      "std": 0.002077831399780726,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 12.145162300200804,
+      "std": 0.020887214146453243,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 3.44505883268185,
+      "std": 0.018078923610512766,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 22.993123335005286,
+      "std": 0.12137924011066716,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2377.395209580838,
+      "std": 7.833218833503672,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 60.0,
+      "std": 0.0,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 5000,
+        "images_per_s": 149.83330011873366,
+        "latency_median_ms": 14.665264490759,
+        "latency_p95_ms": 16.646892810240388,
+        "npu_median_ms": 6.502263975562528,
+        "cpu_ms_per_image": 12.159931790963856,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 3.4322751032003027,
+        "mj_per_image_soc": 22.907295251227765,
+        "cpu_mhz": 2371.8562874251497,
+        "temp_c_max": 60.0,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 5000,
+        "images_per_s": 149.82669648000635,
+        "latency_median_ms": 14.625695999711752,
+        "latency_p95_ms": 16.684126397012733,
+        "npu_median_ms": 6.505202472908422,
+        "cpu_ms_per_image": 12.130392809437751,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 3.457842562163397,
+        "mj_per_image_soc": 23.07895141878281,
+        "cpu_mhz": 2382.934131736527,
+        "temp_c_max": 60.0,
+        "extra": {}
+      }
+    ]
+  },
+  "ladder_ondemand|full_w2": {
+    "phase": "ladder_ondemand",
+    "condition": "full_w2",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 177.86190855130764,
+      "std": 2.4876416126531136,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 25.2361330203712,
+      "std": 0.2702604510623139,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 35.13440446840832,
+      "std": 0.8149121826846975,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 8.865075011271983,
+      "std": 0.06605226110485724,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 16.36834035702811,
+      "std": 0.13840115635791006,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 4.480965302022205,
+      "std": 0.10061690387579986,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 25.190104212626874,
+      "std": 0.210648320838099,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2318.8405613537343,
+      "std": 2.735211406606232,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 61.45,
+      "std": 3.464823227814082,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 5000,
+        "images_per_s": 176.1028802978388,
+        "latency_median_ms": 25.427236018003896,
+        "latency_p95_ms": 35.7106343988562,
+        "npu_median_ms": 8.911781013011932,
+        "cpu_ms_per_image": 16.46620475321285,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 4.409818406989632,
+        "mj_per_image_soc": 25.041153356516695,
+        "cpu_mhz": 2320.774647887324,
+        "temp_c_max": 63.9,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 5000,
+        "images_per_s": 179.6209368047765,
+        "latency_median_ms": 25.0450300227385,
+        "latency_p95_ms": 34.55817453796044,
+        "npu_median_ms": 8.818369009532034,
+        "cpu_ms_per_image": 16.270475960843374,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 4.552112197054778,
+        "mj_per_image_soc": 25.339055068737053,
+        "cpu_mhz": 2316.906474820144,
+        "temp_c_max": 59.0,
+        "extra": {}
+      }
+    ]
+  },
+  "ladder_ondemand|full_w2_spin": {
+    "phase": "ladder_ondemand",
+    "condition": "full_w2_spin",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 217.46535323988707,
+      "std": 3.469815994548496,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 21.411380483186804,
+      "std": 0.432490565118563,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 25.36732882144861,
+      "std": 0.5081050653472652,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 7.3877742543118075,
+      "std": 0.12200102947066421,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 12.968387981726906,
+      "std": 0.10754271228582254,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 4.211767956043216,
+      "std": 0.05246638437719282,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 19.36807962214369,
+      "std": 0.06776843478727067,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2300.4800632553934,
+      "std": 4.305100588044033,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 61.2,
+      "std": 3.1112698372208083,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 5000,
+        "images_per_s": 219.91888365910185,
+        "latency_median_ms": 21.105563471792266,
+        "latency_p95_ms": 25.008044284186326,
+        "npu_median_ms": 7.301506499061361,
+        "cpu_ms_per_image": 12.892343800602408,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 4.24886729222067,
+        "mj_per_image_soc": 19.320160102355214,
+        "cpu_mhz": 2303.5242290748897,
+        "temp_c_max": 63.4,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 5000,
+        "images_per_s": 215.01182282067228,
+        "latency_median_ms": 21.71719749458134,
+        "latency_p95_ms": 25.726613358710896,
+        "npu_median_ms": 7.474042009562254,
+        "cpu_ms_per_image": 13.044432162851406,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 4.174668619865764,
+        "mj_per_image_soc": 19.41599914193217,
+        "cpu_mhz": 2297.4358974358975,
+        "temp_c_max": 59.0,
+        "extra": {}
+      }
+    ]
+  },
+  "ladder_ondemand|full_w3": {
+    "phase": "ladder_ondemand",
+    "condition": "full_w3",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 174.66187863821187,
+      "std": 0.05129911213862049,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 31.524155259830877,
+      "std": 0.04414359661812939,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 41.1657391989138,
+      "std": 0.027358441330737514,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 9.20041900826618,
+      "std": 0.0009708592408935239,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 16.619504713554214,
+      "std": 0.01616565500606297,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 4.408875166437323,
+      "std": 0.03995747694969862,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 25.24231596360501,
+      "std": 0.22135695143326334,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2327.447552447553,
+      "std": 3.214121732666096,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 62.0,
+      "std": 3.5355339059327378,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 5000,
+        "images_per_s": 174.69815258827393,
+        "latency_median_ms": 31.492941023316234,
+        "latency_p95_ms": 41.18508453830146,
+        "npu_median_ms": 9.201105509418994,
+        "cpu_ms_per_image": 16.630935557831325,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 4.437129369347559,
+        "mj_per_image_soc": 25.39883896502625,
+        "cpu_mhz": 2329.72027972028,
+        "temp_c_max": 64.5,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 5000,
+        "images_per_s": 174.6256046881498,
+        "latency_median_ms": 31.55536949634552,
+        "latency_p95_ms": 41.14639385952614,
+        "npu_median_ms": 9.199732507113367,
+        "cpu_ms_per_image": 16.608073869277106,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 4.380620963527085,
+        "mj_per_image_soc": 25.085792962183767,
+        "cpu_mhz": 2325.1748251748254,
+        "temp_c_max": 59.5,
+        "extra": {}
+      }
+    ]
+  },
+  "ladder_ondemand|prefetch": {
+    "phase": "ladder_ondemand",
+    "condition": "prefetch",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 121.98664872121518,
+      "std": 0.807983186729952,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 16.089844997623004,
+      "std": 0.11857404616918564,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 17.234398047730792,
+      "std": 0.13350039990220527,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 6.815261484007351,
+      "std": 0.04115217877013376,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 12.685488245582329,
+      "std": 0.07309170543594899,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 3.1125638056772162,
+      "std": 0.12750096027562413,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 25.51963542905916,
+      "std": 1.2142347830617035,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2243.481106034647,
+      "std": 19.271116421400713,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 58.15,
+      "std": 1.2020815280171329,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 5000,
+        "images_per_s": 122.55797911163664,
+        "latency_median_ms": 16.006000485504046,
+        "latency_p95_ms": 17.139999009668827,
+        "npu_median_ms": 6.786162499338388,
+        "cpu_ms_per_image": 12.63380460502008,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 3.022407012058526,
+        "mj_per_image_soc": 24.661041780003654,
+        "cpu_mhz": 2257.107843137255,
+        "temp_c_max": 59.0,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 5000,
+        "images_per_s": 121.41531833079371,
+        "latency_median_ms": 16.173689509741962,
+        "latency_p95_ms": 17.328797085792758,
+        "npu_median_ms": 6.844360468676314,
+        "cpu_ms_per_image": 12.737171886144578,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 3.202720599295907,
+        "mj_per_image_soc": 26.378229078114668,
+        "cpu_mhz": 2229.854368932039,
+        "temp_c_max": 57.3,
+        "extra": {}
+      }
+    ]
+  },
+  "ladder_ondemand|seq": {
+    "phase": "ladder_ondemand",
+    "condition": "seq",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 65.71926115570164,
+      "std": 0.10089937041503687,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 15.080378492712043,
+      "std": 0.023415805331793924,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 17.648643429856747,
+      "std": 0.040992621667655896,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 6.862117734272033,
+      "std": 0.00038150306528073904,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 13.123379563353414,
+      "std": 0.03224391601563867,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 2.2508471837103006,
+      "std": 0.016890023446496177,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 34.24966900062397,
+      "std": 0.3095868248269906,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2020.2139241384093,
+      "std": 7.001440765940458,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 54.85,
+      "std": 1.9091883092036803,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 5000,
+        "images_per_s": 65.79060778473956,
+        "latency_median_ms": 15.063821017974988,
+        "latency_p95_ms": 17.619657269096933,
+        "npu_median_ms": 6.8618479708675295,
+        "cpu_ms_per_image": 13.100579671686747,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 2.2389041335968836,
+        "mj_per_image_soc": 34.030758057422794,
+        "cpu_mhz": 2025.1646903820817,
+        "temp_c_max": 56.2,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 5000,
+        "images_per_s": 65.64791452666371,
+        "latency_median_ms": 15.096935967449099,
+        "latency_p95_ms": 17.67762959061656,
+        "npu_median_ms": 6.862387497676536,
+        "cpu_ms_per_image": 13.146179455020082,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 2.262790233823718,
+        "mj_per_image_soc": 34.46857994382515,
+        "cpu_mhz": 2015.2631578947369,
+        "temp_c_max": 53.5,
+        "extra": {}
+      }
+    ]
+  },
+  "ladder_performance|full_w1": {
+    "phase": "ladder_performance",
+    "condition": "full_w1",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 140.7216335601479,
+      "std": 0.05168320703519806,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 14.710343995830044,
+      "std": 0.01582149064525308,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 24.625093965732965,
+      "std": 0.046074924502343885,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 6.488158003776334,
+      "std": 0.0063081361034188444,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 12.843816806927709,
+      "std": 0.003515803212920061,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 3.2125085729899494,
+      "std": 0.13753763714055617,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 22.829000618826434,
+      "std": 0.9857583247203732,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2400.0,
+      "std": 0.0,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 60.3,
+      "std": 1.1313708498984771,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 5000,
+        "images_per_s": 140.68508801397982,
+        "latency_median_ms": 14.721531479153782,
+        "latency_p95_ms": 24.592514074174698,
+        "npu_median_ms": 6.483697477960959,
+        "cpu_ms_per_image": 12.846302855220882,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 3.309762368880411,
+        "mj_per_image_soc": 23.5260370148473,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 61.1,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 5000,
+        "images_per_s": 140.75817910631594,
+        "latency_median_ms": 14.699156512506306,
+        "latency_p95_ms": 24.65767385729123,
+        "npu_median_ms": 6.492618529591709,
+        "cpu_ms_per_image": 12.841330758634536,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 3.115254777099487,
+        "mj_per_image_soc": 22.131964222805568,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 59.5,
+        "extra": {}
+      }
+    ]
+  },
+  "ladder_performance|full_w2": {
+    "phase": "ladder_performance",
+    "condition": "full_w2",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 169.94226651430233,
+      "std": 4.691843203713738,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 25.46477447322104,
+      "std": 0.4598499201798003,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 43.04103786853375,
+      "std": 2.4029539981332078,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 8.92878626473248,
+      "std": 0.2189983999032088,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 16.670917179718874,
+      "std": 0.36259331999516653,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 4.458469182203586,
+      "std": 0.13187114660454866,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 26.255919641909244,
+      "std": 1.5008616164402355,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2400.0,
+      "std": 0.0,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 61.650000000000006,
+      "std": 0.7778174593052033,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 5000,
+        "images_per_s": 166.62463236869235,
+        "latency_median_ms": 25.78993747010827,
+        "latency_p95_ms": 44.74018293549307,
+        "npu_median_ms": 9.083641518373042,
+        "cpu_ms_per_image": 16.9273093751004,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 4.551716164210507,
+        "mj_per_image_soc": 27.317189068516736,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 62.2,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 5000,
+        "images_per_s": 173.25990065991235,
+        "latency_median_ms": 25.139611476333812,
+        "latency_p95_ms": 41.34189280157443,
+        "npu_median_ms": 8.773931011091918,
+        "cpu_ms_per_image": 16.414524984337348,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 4.365222200196664,
+        "mj_per_image_soc": 25.19465021530175,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 61.1,
+        "extra": {}
+      }
+    ]
+  },
+  "ladder_performance|full_w2_spin": {
+    "phase": "ladder_performance",
+    "condition": "full_w2_spin",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 219.76635655690188,
+      "std": 0.8055309455365753,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 21.216796230874024,
+      "std": 0.167891538873313,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 25.09397784015164,
+      "std": 0.1102805918216431,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 7.32852250803262,
+      "std": 0.06862684085881568,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 12.658051795281125,
+      "std": 0.014330240368447988,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 4.386361709423031,
+      "std": 0.07756757583852761,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 19.959988111367593,
+      "std": 0.42611585255644446,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2400.0,
+      "std": 0.0,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 60.6,
+      "std": 2.2627416997969543,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 5000,
+        "images_per_s": 220.3359529509464,
+        "latency_median_ms": 21.09807898523286,
+        "latency_p95_ms": 25.015997685841292,
+        "npu_median_ms": 7.279996003489941,
+        "cpu_ms_per_image": 12.668184805421687,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 4.331513150547407,
+        "mj_per_image_soc": 19.658678702453845,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 62.2,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 5000,
+        "images_per_s": 219.19676016285734,
+        "latency_median_ms": 21.33551347651519,
+        "latency_p95_ms": 25.17195799446199,
+        "npu_median_ms": 7.3770490125752985,
+        "cpu_ms_per_image": 12.647918785140561,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 4.441210268298656,
+        "mj_per_image_soc": 20.261297520281342,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 59.0,
+        "extra": {}
+      }
+    ]
+  },
+  "ladder_performance|full_w3": {
+    "phase": "ladder_performance",
+    "condition": "full_w3",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 166.38015750582895,
+      "std": 3.8097170456717593,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 32.08588201960083,
+      "std": 0.0016602936022038076,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 50.649293068272534,
+      "std": 5.851460176378023,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 9.28541827306617,
+      "std": 0.04043765797897251,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 16.99243346656626,
+      "std": 0.1729885102919227,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 4.527147019571979,
+      "std": 0.03567573653754566,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 27.21433986822599,
+      "std": 0.40872074380282997,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2400.0,
+      "std": 0.0,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 62.8,
+      "std": 1.5556349186104015,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 5000,
+        "images_per_s": 169.07403426322543,
+        "latency_median_ms": 32.08470801473595,
+        "latency_p95_ms": 46.5116858977126,
+        "npu_median_ms": 9.314012015238404,
+        "cpu_ms_per_image": 16.870112117871486,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 4.552373574801502,
+        "mj_per_image_soc": 26.9253306586714,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 63.9,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 5000,
+        "images_per_s": 163.68628074843247,
+        "latency_median_ms": 32.08705602446571,
+        "latency_p95_ms": 54.786900238832466,
+        "npu_median_ms": 9.256824530893937,
+        "cpu_ms_per_image": 17.11475481526104,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 4.501920464342455,
+        "mj_per_image_soc": 27.50334907778058,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 61.7,
+        "extra": {}
+      }
+    ]
+  },
+  "ladder_performance|prefetch": {
+    "phase": "ladder_performance",
+    "condition": "prefetch",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 120.51848564905859,
+      "std": 0.23791677333517822,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 15.082093756063841,
+      "std": 0.02632521380902983,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 25.463943675276827,
+      "std": 0.04209310304723629,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 6.379241996910423,
+      "std": 0.011158830892608433,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 12.876588680421687,
+      "std": 0.02993838555224132,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 3.146708978919028,
+      "std": 0.002811920375880657,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 26.10983913283396,
+      "std": 0.07487593393347748,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2400.0,
+      "std": 0.0,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 59.25,
+      "std": 1.9091883092036803,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 5000,
+        "images_per_s": 120.68671821284191,
+        "latency_median_ms": 15.100708493264392,
+        "latency_p95_ms": 25.434179356670942,
+        "npu_median_ms": 6.3871324819047,
+        "cpu_ms_per_image": 12.85541904497992,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 3.144720650953086,
+        "mj_per_image_soc": 26.056893852201924,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 60.6,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 5000,
+        "images_per_s": 120.35025308527526,
+        "latency_median_ms": 15.06347901886329,
+        "latency_p95_ms": 25.493707993882712,
+        "npu_median_ms": 6.371351511916146,
+        "cpu_ms_per_image": 12.897758315863454,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 3.1486973068849697,
+        "mj_per_image_soc": 26.162784413466,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 57.9,
+        "extra": {}
+      }
+    ]
+  },
+  "ladder_performance|seq": {
+    "phase": "ladder_performance",
+    "condition": "seq",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 74.56230861912294,
+      "std": 0.14361775079454714,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 13.297738260007463,
+      "std": 0.017387406587656615,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 15.335931077424902,
+      "std": 0.013996970448420751,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 6.346280264551751,
+      "std": 0.012557147257730364,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 11.234439946586345,
+      "std": 0.027035715481224527,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 2.5911649583857774,
+      "std": 0.09947316607453201,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 34.750454263048,
+      "std": 1.267160431896944,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2400.0,
+      "std": 0.0,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 57.3,
+      "std": 2.4041630560342604,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 5000,
+        "images_per_s": 74.66386170460852,
+        "latency_median_ms": 13.285443506902084,
+        "latency_p95_ms": 15.326033724704757,
+        "npu_median_ms": 6.337401020573452,
+        "cpu_ms_per_image": 11.215322808835342,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 2.6615031086631746,
+        "mj_per_image_soc": 35.6464719972936,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 59.0,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 5000,
+        "images_per_s": 74.46075553363735,
+        "latency_median_ms": 13.310033013112843,
+        "latency_p95_ms": 15.34582843014505,
+        "npu_median_ms": 6.3551595085300505,
+        "cpu_ms_per_image": 11.25355708433735,
+        "predictions": 31919,
+        "predictions_sha256": null,
+        "power_w": 2.5208268081083802,
+        "mj_per_image_soc": 33.854436528802395,
+        "cpu_mhz": 2400.0,
+        "temp_c_max": 55.6,
+        "extra": {}
+      }
+    ]
+  },
+  "stream|full_w2_fps15": {
+    "phase": "stream",
+    "condition": "full_w2_fps15",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 14.98975153597749,
+      "std": 0.0017460320240633123,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 17.327542911516502,
+      "std": 0.15809859102880836,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 20.129047255613838,
+      "std": 0.12871339665669557,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 6.98475974786561,
+      "std": 0.060725973703808875,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 15.481317004591837,
+      "std": 0.12977286658969736,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 1.6651333300926772,
+      "std": 0.20818887007104925,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 111.08398321223788,
+      "std": 13.875809443428729,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 1701.6030534351146,
+      "std": 35.94909284505652,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 53.2,
+      "std": 0.4242640687119295,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 1000,
+        "images_per_s": 14.990986167061873,
+        "latency_median_ms": 17.43933549732901,
+        "latency_p95_ms": 20.22006137121934,
+        "npu_median_ms": 7.027699495665729,
+        "cpu_ms_per_image": 15.573080278571428,
+        "predictions": 6375,
+        "predictions_sha256": null,
+        "power_w": 1.812345091887481,
+        "mj_per_image_soc": 120.89566216413867,
+        "cpu_mhz": 1727.0229007633588,
+        "temp_c_max": 53.5,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 1000,
+        "images_per_s": 14.988516904893105,
+        "latency_median_ms": 17.215750325703993,
+        "latency_p95_ms": 20.038033140008334,
+        "npu_median_ms": 6.941820000065491,
+        "cpu_ms_per_image": 15.389553730612244,
+        "predictions": 6375,
+        "predictions_sha256": null,
+        "power_w": 1.517921568297873,
+        "mj_per_image_soc": 101.2723042603371,
+        "cpu_mhz": 1676.1832061068703,
+        "temp_c_max": 52.9,
+        "extra": {}
+      }
+    ]
+  },
+  "stream|full_w2_fps30": {
+    "phase": "stream",
+    "condition": "full_w2_fps30",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 29.95561949282817,
+      "std": 0.008343571290157555,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 16.959941989625804,
+      "std": 0.017878022246103742,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 19.86525526153855,
+      "std": 0.09514493000652412,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 6.942347768926993,
+      "std": 0.003562725788186511,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 15.043851490306121,
+      "std": 0.00106453410678881,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 1.7601159793582442,
+      "std": 0.054745508653170384,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 58.68693130901859,
+      "std": 1.711797910479111,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 1801.453962487953,
+      "std": 63.28131281628513,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 53.5,
+      "std": 0.0,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 1000,
+        "images_per_s": 29.949719696989586,
+        "latency_median_ms": 16.972583660390228,
+        "latency_p95_ms": 19.932532886741683,
+        "npu_median_ms": 6.939828541362658,
+        "cpu_ms_per_image": 15.043098751020407,
+        "predictions": 6375,
+        "predictions_sha256": null,
+        "power_w": 1.7214050589500804,
+        "mj_per_image_soc": 57.476507398497844,
+        "cpu_mhz": 1846.2006079027356,
+        "temp_c_max": 53.5,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 1000,
+        "images_per_s": 29.961519288666754,
+        "latency_median_ms": 16.94730031886138,
+        "latency_p95_ms": 19.797977636335418,
+        "npu_median_ms": 6.944866996491328,
+        "cpu_ms_per_image": 15.044604229591837,
+        "predictions": 6375,
+        "predictions_sha256": null,
+        "power_w": 1.7988268997664076,
+        "mj_per_image_soc": 59.89735521953933,
+        "cpu_mhz": 1756.7073170731708,
+        "temp_c_max": 53.5,
+        "extra": {}
+      }
+    ]
+  },
+  "stream|full_w2_fps60": {
+    "phase": "stream",
+    "condition": "full_w2_fps60",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 59.85393530010623,
+      "std": 0.00998851705091023,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 15.572949923807755,
+      "std": 0.029746208471388935,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 18.2914507255191,
+      "std": 0.007702077263465866,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 6.869195247418247,
+      "std": 0.002768665168170473,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 13.540545834693878,
+      "std": 0.03259717093020396,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 2.172496107350846,
+      "std": 0.07952074384749444,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 36.209285522219815,
+      "std": 1.3114480579767036,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 1980.0,
+      "std": 72.85342594043215,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 54.0,
+      "std": 0.7071067811865476,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 1000,
+        "images_per_s": 59.86099824824693,
+        "latency_median_ms": 15.551916178083047,
+        "latency_p95_ms": 18.28600453445688,
+        "npu_median_ms": 6.8711529893334955,
+        "cpu_ms_per_image": 13.517496154081634,
+        "predictions": 6375,
+        "predictions_sha256": null,
+        "power_w": 2.228725764570408,
+        "mj_per_image_soc": 37.13661933718907,
+        "cpu_mhz": 2031.5151515151515,
+        "temp_c_max": 54.5,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 1000,
+        "images_per_s": 59.84687235196554,
+        "latency_median_ms": 15.593983669532463,
+        "latency_p95_ms": 18.296896916581318,
+        "npu_median_ms": 6.867237505502999,
+        "cpu_ms_per_image": 13.563595515306123,
+        "predictions": 6375,
+        "predictions_sha256": null,
+        "power_w": 2.1162664501312847,
+        "mj_per_image_soc": 35.281951707250556,
+        "cpu_mhz": 1928.4848484848485,
+        "temp_c_max": 53.5,
+        "extra": {}
+      }
+    ]
+  },
+  "stream|seq_fps15": {
+    "phase": "stream",
+    "condition": "seq_fps15",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 14.991322034983357,
+      "std": 0.0024455857410117395,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 17.433510642149486,
+      "std": 0.012974458680632664,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 20.349041261943057,
+      "std": 0.04029463857545136,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 7.244250256917439,
+      "std": 0.012972236092918223,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 15.552775351020408,
+      "std": 0.01887516785127881,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 1.5286400441189754,
+      "std": 0.02592564124201692,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 101.95163461449064,
+      "std": 1.689319362161167,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 1671.736115974508,
+      "std": 3.6427463284601305,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 55.099999999999994,
+      "std": 3.1112698372208083,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 1000,
+        "images_per_s": 14.9930513252448,
+        "latency_median_ms": 17.424336314434186,
+        "latency_p95_ms": 20.320548649760894,
+        "npu_median_ms": 7.235077500808984,
+        "cpu_ms_per_image": 15.56612211020408,
+        "predictions": 6375,
+        "predictions_sha256": null,
+        "power_w": 1.546972240847815,
+        "mj_per_image_soc": 103.14616379106454,
+        "cpu_mhz": 1674.3119266055046,
+        "temp_c_max": 57.3,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 1000,
+        "images_per_s": 14.989592744721914,
+        "latency_median_ms": 17.442684969864786,
+        "latency_p95_ms": 20.37753387412522,
+        "npu_median_ms": 7.253423013025895,
+        "cpu_ms_per_image": 15.539428591836733,
+        "predictions": 6375,
+        "predictions_sha256": null,
+        "power_w": 1.5103078473901355,
+        "mj_per_image_soc": 100.75710543791675,
+        "cpu_mhz": 1669.1603053435115,
+        "temp_c_max": 52.9,
+        "extra": {}
+      }
+    ]
+  },
+  "stream|seq_fps30": {
+    "phase": "stream",
+    "condition": "seq_fps30",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 29.97512044108748,
+      "std": 0.00012680889741309157,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 16.911133483517915,
+      "std": 0.16533381374285575,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 19.78235334827332,
+      "std": 0.19020369152212777,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 7.060300733428448,
+      "std": 0.17167172840574493,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 14.97988721887755,
+      "std": 0.12150974662150638,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 1.8323271800879484,
+      "std": 0.1689984461618964,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 61.00360587263594,
+      "std": 5.631874990255367,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 1743.2926829268292,
+      "std": 50.446032560259894,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 54.0,
+      "std": 0.7071067811865476,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 1000,
+        "images_per_s": 29.975030773656204,
+        "latency_median_ms": 16.794224822660908,
+        "latency_p95_ms": 19.647859028191306,
+        "npu_median_ms": 6.938910490134731,
+        "cpu_ms_per_image": 14.893966853061224,
+        "predictions": 6375,
+        "predictions_sha256": null,
+        "power_w": 1.7128272327968819,
+        "mj_per_image_soc": 57.021268876231446,
+        "cpu_mhz": 1778.9634146341464,
+        "temp_c_max": 54.5,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 1000,
+        "images_per_s": 29.975210108518755,
+        "latency_median_ms": 17.028042144374922,
+        "latency_p95_ms": 19.916847668355327,
+        "npu_median_ms": 7.181690976722166,
+        "cpu_ms_per_image": 15.065807584693877,
+        "predictions": 6375,
+        "predictions_sha256": null,
+        "power_w": 1.951827127379015,
+        "mj_per_image_soc": 64.98594286904043,
+        "cpu_mhz": 1707.621951219512,
+        "temp_c_max": 53.5,
+        "extra": {}
+      }
+    ]
+  },
+  "stream|seq_fps60": {
+    "phase": "stream",
+    "condition": "seq_fps60",
+    "reps": 2,
+    "images_per_s": {
+      "mean": 59.88556185676865,
+      "std": 0.022694135270608,
+      "n": 2
+    },
+    "latency_median_ms": {
+      "mean": 15.73737723811064,
+      "std": 0.1933825620063716,
+      "n": 2
+    },
+    "latency_p95_ms": {
+      "mean": 18.773713037080597,
+      "std": 0.49925571917487327,
+      "n": 2
+    },
+    "npu_median_ms": {
+      "mean": 7.005055755143985,
+      "std": 0.14581426641302572,
+      "n": 2
+    },
+    "cpu_ms_per_image": {
+      "mean": 13.439245392346939,
+      "std": 0.09319585192913853,
+      "n": 2
+    },
+    "power_w": {
+      "mean": 2.245873261315761,
+      "std": 0.19245187503395123,
+      "n": 2
+    },
+    "mj_per_image_soc": {
+      "mean": 37.42192759788918,
+      "std": 3.190820153350205,
+      "n": 2
+    },
+    "cpu_mhz": {
+      "mean": 2012.4242424242425,
+      "std": 62.99678596025599,
+      "n": 2
+    },
+    "temp_c_max": {
+      "mean": 55.05,
+      "std": 0.7778174593052033,
+      "n": 2
+    },
+    "runs": [
+      {
+        "rep": "r0",
+        "images": 1000,
+        "images_per_s": 59.901609033711665,
+        "latency_median_ms": 15.874119359068573,
+        "latency_p95_ms": 19.126740141655315,
+        "npu_median_ms": 7.1081620117183775,
+        "cpu_ms_per_image": 13.50514481122449,
+        "predictions": 6375,
+        "predictions_sha256": null,
+        "power_w": 2.109789235427188,
+        "mj_per_image_soc": 35.16567702990855,
+        "cpu_mhz": 1967.878787878788,
+        "temp_c_max": 55.6,
+        "extra": {}
+      },
+      {
+        "rep": "r1",
+        "images": 1000,
+        "images_per_s": 59.86951467982564,
+        "latency_median_ms": 15.600635117152706,
+        "latency_p95_ms": 18.420685932505876,
+        "npu_median_ms": 6.901949498569593,
+        "cpu_ms_per_image": 13.373345973469387,
+        "predictions": 6375,
+        "predictions_sha256": null,
+        "power_w": 2.381957287204334,
+        "mj_per_image_soc": 39.67817816586981,
+        "cpu_mhz": 2056.969696969697,
+        "temp_c_max": 54.5,
+        "extra": {}
+      }
+    ]
+  }
+}

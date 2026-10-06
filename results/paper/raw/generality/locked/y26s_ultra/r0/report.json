@@ -1,0 +1,49 @@
+{
+  "engine": "/tmp/ultra_s/yolo26s.engine",
+  "images": 5000,
+  "images_timed": 4980,
+  "prediction_count": 632764,
+  "arrival_fps": 0.0,
+  "latency_ms": {
+    "mean": 15.872395046617056,
+    "median": 15.53392100322526,
+    "p95": 17.982377598673338
+  },
+  "latency_p99_ms": 20.14629276964115,
+  "ultralytics_speed_ms": {
+    "preprocess": {
+      "mean": 1.8628318224676854,
+      "median": 1.3317664997885004,
+      "p95": 4.240382149146171
+    },
+    "inference": {
+      "mean": 6.088845175612053,
+      "median": 6.044206005753949,
+      "p95": 6.072694403701462
+    },
+    "postprocess": {
+      "mean": 1.1713885685712302,
+      "median": 1.1674259949359111,
+      "p95": 1.2356862614979036
+    }
+  },
+  "throughput_images_per_s": 62.97884419032504,
+  "process_cpu_ms_per_image": 9.6915728,
+  "window_unix": [
+    1791130073.1644707,
+    1791130152.2386544
+  ],
+  "note": "Per-image span is the predict() call from file path through COCO rows; Ultralytics does decode, letterbox and postprocess.",
+  "power": {
+    "rail": "VDD_IN (module input)",
+    "samples": 1582,
+    "mean_power_w": 12.242306604148794,
+    "energy_j": 968.0504013584097,
+    "duration_s": 79.07418370246887,
+    "tj_start_c": 56.5,
+    "tj_max_c": 62.062,
+    "gpu_mhz_mean": 1020.0,
+    "max_core_cpu_mhz_mean": 1728.0,
+    "energy_per_image_mj": 194.38763079486137
+  }
+}

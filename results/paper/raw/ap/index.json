@@ -1,0 +1,151 @@
+{
+  "0475ec2ca0bd1a3a3552ea44af787780f93df7f890965829118276b01d93f961": {
+    "runs": [
+      "ladder/default/float_overlap_event_w2/r0",
+      "ladder/default/float_overlap_event_w2/r1",
+      "ladder/default/float_overlap_event_w2/r2",
+      "ladder/default/float_seq_stream/r0",
+      "ladder/default/float_seq_stream/r1",
+      "ladder/default/float_seq_stream/r2",
+      "ladder/locked/float_overlap_event_w2/r0",
+      "ladder/locked/float_overlap_event_w2/r1",
+      "ladder/locked/float_overlap_event_w2/r2",
+      "ladder/locked/float_seq_stream/r0",
+      "ladder/locked/float_seq_stream/r1",
+      "ladder/locked/float_seq_stream/r2",
+      "resolution/default/640_float_seq_stream/r0",
+      "resolution/default/640_float_seq_stream/r1"
+    ],
+    "summary": "0475ec2ca0bd1a3a.json"
+  },
+  "62bbc631867795c8c9d76ece28508c278ae3311b6f9e67db47e6715b6e6cb187": {
+    "runs": [
+      "ladder/default/uint8_overlap_event/r0",
+      "ladder/default/uint8_overlap_event/r1",
+      "ladder/default/uint8_overlap_event/r2",
+      "ladder/default/uint8_overlap_event_w2/r0",
+      "ladder/default/uint8_overlap_event_w2/r1",
+      "ladder/default/uint8_overlap_event_w2/r2",
+      "ladder/default/uint8_prefetch_event/r0",
+      "ladder/default/uint8_prefetch_event/r1",
+      "ladder/default/uint8_prefetch_event/r2",
+      "ladder/default/uint8_prefetch_stream/r0",
+      "ladder/default/uint8_prefetch_stream/r1",
+      "ladder/default/uint8_prefetch_stream/r2",
+      "ladder/default/uint8_seq_event/r0",
+      "ladder/default/uint8_seq_event/r1",
+      "ladder/default/uint8_seq_event/r2",
+      "ladder/default/uint8_seq_stream/r0",
+      "ladder/default/uint8_seq_stream/r1",
+      "ladder/default/uint8_seq_stream/r2",
+      "ladder/locked/uint8_overlap_event/r0",
+      "ladder/locked/uint8_overlap_event/r1",
+      "ladder/locked/uint8_overlap_event/r2",
+      "ladder/locked/uint8_overlap_event_w2/r0",
+      "ladder/locked/uint8_overlap_event_w2/r1",
+      "ladder/locked/uint8_overlap_event_w2/r2",
+      "ladder/locked/uint8_prefetch_event/r0",
+      "ladder/locked/uint8_prefetch_event/r1",
+      "ladder/locked/uint8_prefetch_event/r2",
+      "ladder/locked/uint8_prefetch_stream/r0",
+      "ladder/locked/uint8_prefetch_stream/r1",
+      "ladder/locked/uint8_prefetch_stream/r2",
+      "ladder/locked/uint8_seq_event/r0",
+      "ladder/locked/uint8_seq_event/r1",
+      "ladder/locked/uint8_seq_event/r2",
+      "ladder/locked/uint8_seq_stream/r0",
+      "ladder/locked/uint8_seq_stream/r1",
+      "ladder/locked/uint8_seq_stream/r2",
+      "resolution/default/640_uint8_overlap_event_w2/r0",
+      "resolution/default/640_uint8_overlap_event_w2/r1"
+    ],
+    "summary": "62bbc631867795c8.json"
+  },
+  "2bdd428946a6bfa95c4d3a6e3a584622555ce07ea17f251613c07ce0119a203e": {
+    "runs": [
+      "ladder/default/ultralytics/r0",
+      "ladder/default/ultralytics/r1",
+      "ladder/default/ultralytics/r2",
+      "ladder/locked/ultralytics/r0",
+      "ladder/locked/ultralytics/r1",
+      "ladder/locked/ultralytics/r2"
+    ],
+    "summary": "2bdd428946a6bfa9.json"
+  },
+  "eed197e4b36d69ee8d1fb70460e94cf72f4d9051bce8684127a005b905bb239f": {
+    "runs": [
+      "generality/default/v10n_float_seq_stream/r0",
+      "generality/default/v10n_float_seq_stream/r1",
+      "generality/locked/v10n_float_seq_stream/r0"
+    ],
+    "summary": "eed197e4b36d69ee.json"
+  },
+  "e3b060aa6f45944489070b83fe366bcc2d0501dd18482c44984a8d63fa0001ad": {
+    "runs": [
+      "generality/default/v10n_uint8_overlap_event_w2/r0",
+      "generality/default/v10n_uint8_overlap_event_w2/r1",
+      "generality/locked/v10n_uint8_overlap_event_w2/r0"
+    ],
+    "summary": "e3b060aa6f459444.json"
+  },
+  "38a5768e808ec19098be00290d99ee1bc25d198614d74b6b13f817aa93b9ce7d": {
+    "runs": [
+      "generality/default/v10n_ultra/r0",
+      "generality/default/v10n_ultra/r1",
+      "generality/locked/v10n_ultra/r0"
+    ],
+    "summary": "38a5768e808ec190.json"
+  },
+  "b181fb2f1ef923fa7c237910219f0a5cbce968d2c3dbedbaa89142f6b8627fc3": {
+    "runs": [
+      "generality/default/y26s_float_seq_stream/r0",
+      "generality/default/y26s_float_seq_stream/r1",
+      "generality/locked/y26s_float_seq_stream/r0"
+    ],
+    "summary": "b181fb2f1ef923fa.json"
+  },
+  "7e31a97ed5f18b9b83b0b468859625c0dd10f8cf1c7f99364eb76328e2f5e935": {
+    "runs": [
+      "generality/default/y26s_uint8_overlap_event_w2/r0",
+      "generality/default/y26s_uint8_overlap_event_w2/r1",
+      "generality/locked/y26s_uint8_overlap_event_w2/r0"
+    ],
+    "summary": "7e31a97ed5f18b9b.json"
+  },
+  "873f7da5af9f8b1bcc1ebe8351198e148c292ec707acc3778af674ec21803e94": {
+    "runs": [
+      "generality/default/y26s_ultra/r0",
+      "generality/default/y26s_ultra/r1",
+      "generality/locked/y26s_ultra/r0"
+    ],
+    "summary": "873f7da5af9f8b1b.json"
+  },
+  "0d135fcd7c3386eaca6cc8000f04aad3fbe1ae18812e59915adff4d9553763bc": {
+    "runs": [
+      "resolution/default/512_float_seq_stream/r0",
+      "resolution/default/512_float_seq_stream/r1"
+    ],
+    "summary": "0d135fcd7c3386ea.json"
+  },
+  "0d10d941b5ced8d03f98a570be24f291dda6f4f4e7d5730fb0c8953d6c09ebac": {
+    "runs": [
+      "resolution/default/512_uint8_overlap_event_w2/r0",
+      "resolution/default/512_uint8_overlap_event_w2/r1"
+    ],
+    "summary": "0d10d941b5ced8d0.json"
+  },
+  "a11399ce6d089a0101302a8cf8d22ae44457e177861b19ac5adc01fefc99df83": {
+    "runs": [
+      "resolution/default/576_float_seq_stream/r0",
+      "resolution/default/576_float_seq_stream/r1"
+    ],
+    "summary": "a11399ce6d089a01.json"
+  },
+  "bcacefe69b463cc307f1a9fdcfaf49802045811df1fb0ca0dadd9aafff2f64a7": {
+    "runs": [
+      "resolution/default/576_uint8_overlap_event_w2/r0",
+      "resolution/default/576_uint8_overlap_event_w2/r1"
+    ],
+    "summary": "bcacefe69b463cc3.json"
+  }
+}

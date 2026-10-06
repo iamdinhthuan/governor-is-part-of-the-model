@@ -1,0 +1,28 @@
+{
+  "model": "y26n_640",
+  "rung": "float_seq_stream",
+  "limit": 1000,
+  "fps": 15,
+  "extra": [],
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/jetson_fast_eval.py",
+    "--engine",
+    "/tmp/yolo26n_84172_fp16_opt3.engine",
+    "--memory",
+    "pinned",
+    "--stream-sync",
+    "--annotations",
+    "/tmp/instances_val2017.json",
+    "--images-dir",
+    "/tmp/yolo26-coco-val/val2017",
+    "--predictions",
+    "/tmp/paper/stream/default/float_seq_stream_fps15/r0/predictions.json",
+    "--output",
+    "/tmp/paper/stream/default/float_seq_stream_fps15/r0/report.json",
+    "--limit",
+    "1000",
+    "--fps",
+    "15"
+  ]
+}

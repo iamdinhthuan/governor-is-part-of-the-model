@@ -1,0 +1,131 @@
+\section{RQ2: Which pipeline decisions matter}
+\label{sec:ladder}
+
+\subsection{Cumulative ablation on COCO val2017}
+
+\Cref{tab:ladder} and \cref{fig:ladder} report the cumulative ladder on
+all 5,000 val2017 images. Model, engine and accuracy are fixed. All
+uint8 rows share one prediction file, and both float rows share
+another. \Cref{fig:timeline} illustrates the three schedules.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figs/timeline.pdf}
+\caption{Schematic of the three schedules. The layout is schematic,
+but the time axis uses the measured stage medians of the sequential
+float pipeline of \cref{sec:diagnosis} (decode 7.5\,ms, letterbox
+3.9\,ms, rows 1.7\,ms, engine 13.2\,ms host-measured
+enqueue-to-completion at 306\,MHz; the device-side CUDA-event share is
+12.5\,ms, \cref{tab:fixedfreq}). Markers ($\blacktriangledown$) show
+when each frame's detections become ready. The bars illustrate the
+structure, not the measured throughputs. In (a) every host stage is GPU
+idle time, so the governor holds the minimum clock. In (b) and (c) the
+host stages overlap engine execution.}
+\label{fig:timeline}
+\end{figure*}
+
+\input{tables/ladder.tex}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figs/ladder.pdf}
+\caption{Throughput, energy per image and mean input power along the
+ladder of \cref{tab:ladder} (bars: mean; whiskers: minimum--maximum of
+three runs). Dashed lines in the right panel mark idle input power
+(4.68\,W default, 6.62\,W locked).}
+\label{fig:ladder}
+\end{figure*}
+
+\textbf{Accuracy.}
+Our uint8 pipeline scores 0.40257 AP and 0.19766 AP$_S$, against 0.40259
+and 0.19779 for the Ultralytics predictor on its own engine. The
+float-input variant scores 0.40240. Reaching this agreement required one
+fix to our decoder. An earlier version subtracted the fractional
+letterbox padding, rather than the integer offset actually used to place
+the resized image. This shifted boxes by half a pixel whenever the
+padding was odd and measurably lowered AP on the verification split. Such errors are easy to make and hard to notice in a custom
+pipeline, so we checked every pipeline in this paper with official
+COCOeval on the full split.
+
+\textbf{Baselines.}
+Under default governors the Ultralytics predictor processes 31.1
+images/s at 194.6\,mJ per image. Our float-input sequential pipeline is
+similar (33.9 images/s). Both run the GPU at 306\,MHz for the whole run.
+Locking clocks raises them to 73.9 and 59.9 images/s, at 3.5--4.2\,W more
+module input power. Locking clocks with \texttt{jetson\_clocks} is the usual recommendation for benchmarking on Jetson~\cite{nvidia2024jetsonperf}.
+
+\textbf{Host-side changes help a sequential schedule only through the host.}
+Moving normalization and the channel transpose into the engine saves
+4.1\,ms of CPU time per image and raises throughput by 18\% (33.9 to
+40.1 images/s). Waiting on an event instead of the stream raises it to 50.0 images/s; put the other way, the stream-synchronized pipeline loses 20\% of throughput. The GPU still runs at 306\,MHz and the
+engine still takes 13.2\,ms. The event-sync gain comes from the host
+side, at a cost of 1.3\,W and 3.7\,ms of CPU time per image
+(\cref{sec:sched}).
+
+\textbf{Overlapping CPU and GPU work changes the governor's regime.}
+Prefetching the next image's decode and letterbox gives the largest
+single step, from 50.0 to 146.6 images/s. The GPU is now idle only
+briefly between inferences, and the governor raises its mean clock to
+911\,MHz. The engine's enqueue-to-completion time falls from 13.2 to
+4.4\,ms, close to its back-to-back value. Overlapping row construction
+of image $i{-}1$ with inference of image $i$ gives 175.2 images/s at
+999\,MHz. A second decode worker gives 213.8 images/s at 1019\,MHz. More workers do not help. In a separate sweep over one to five workers (two runs each), throughput was 174.9, 214.2, 215.9, 216.4 and 216.6 images/s, so the third to fifth workers add 1.1\% together. With two workers the GPU's measured load is already 0.90 (worker-sweep session; 0.87 in the load-logging session of \cref{sec:diagnosis}) and its clock is at the maximum, so the pipeline is limited by the engine and the main thread, not by decode. Extra workers only lengthen the queue: median latency per image (from the image entering the pipeline to its finished rows) grows from 17.2\,ms with two workers to 30.1\,ms with five. The full pipeline is $6.9\times$ faster than the Ultralytics predictor under the same default governors. The Ultralytics predictor is a weak baseline, so we also compare against the strongest sequential configuration we measured, uint8 input with event synchronization and all clocks locked (90.4 images/s). The full pipeline under default governors is still $2.4\times$ faster, at 0.4026 AP in both cases.
+
+\textbf{Locking clocks becomes unnecessary.}
+With locked clocks the full pipeline reaches 217.9 images/s, only 1.9\%
+more than under the default governor, at the same 74.5\,mJ per image and
+0.3\,W more power. Once the pipeline keeps the GPU busy, the stock
+governor already selects the top clock. Locking helps the sequential
+pipelines by 1.8--2.3$\times$ (2.4$\times$ for the Ultralytics
+predictor) and the full pipeline hardly at all.
+
+\textbf{Preprocessing placement interacts with the schedule.}
+The float-input variant of the full pipeline in \cref{tab:ladder}
+reaches only 89.2 images/s. Host-side
+normalization raises process CPU time from 11.6 to 21.6\,ms per image,
+the CPU becomes the bottleneck (\cref{eq:ovl}), and the GPU clock
+averages only 599\,MHz. In-graph preprocessing is thus worth 18\% in a
+sequential pipeline but $2.4\times$ in the full one. Ultralytics 8.4.172
+already copies uint8 data and normalizes on the GPU, so the technique is
+not new. Our point is that its value depends on whether the schedule
+can keep the GPU busy.
+
+\textbf{Where the energy saving comes from.}
+Energy per image falls from 194.6\,mJ (Ultralytics) to 74.5\,mJ, a
+factor of 2.6. \Cref{eq:energy} shows that most of this saving comes
+from amortizing the idle floor (4.68\,W) over more images per second,
+not from doing less work per image. The marginal energy above idle is
+44.1\,mJ per image for Ultralytics and 52.6\,mJ for the full pipeline.
+Across all default-governor rungs it ranges from 39 to 57\,mJ, while the
+idle-floor term ranges from 22 to 150\,mJ. The full pipeline does
+slightly more work per image above idle (higher clocks, two decoders),
+but it finishes much sooner. Its energy advantage is real when the device
+works through a backlog or can sleep after finishing. At a fixed camera
+rate the situation is different (\cref{sec:stream}).
+
+\input{sections/gc_results.tex}
+
+\subsection{Synchronization: spinning versus sleeping}
+\label{sec:sched}
+
+The 20\% effect of the synchronization call is surprising, so we isolated it. By default, \texttt{cudaEventSynchronize} on an event
+created without the blocking-sync flag busy-waits, whereas
+\texttt{cudaStreamSynchronize} follows the device scheduling policy,
+which on this system lets the host thread yield or sleep. We crossed
+the two calls with the three device scheduling flags~\cite{nvidia2024cuda}
+on the first 2,000 val2017 images (\cref{tab:sched}).
+
+\input{tables/sched.tex}
+
+\input{sections/sched_results.tex}
+
+\textbf{Answer to RQ2.}
+The decisions that matter are those that change the GPU's duty cycle:
+prefetching ($2.9\times$), overlapping post-processing and adding a
+decode worker (a further $1.5\times$), and, under the default governors, how the host waits for the GPU (20\%). The last effect acts through the CPU governor: a sleeping wait
+lowers the host's clock, and through the slower host also the GPU's. In-graph preprocessing matters
+once the schedule is no longer sequential. Locking clocks substitutes
+for a good schedule only partially (1.8--2.3$\times$ for our
+sequential pipelines, 2.4$\times$ for the Ultralytics predictor) and
+is nearly worthless once the schedule is good (1.9\%). Finally, the
+evaluation harness itself can bias the comparison: garbage-collection pauses cost the full pipeline 7.1\% of its measured throughput.

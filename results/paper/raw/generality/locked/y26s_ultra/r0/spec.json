@@ -1,0 +1,21 @@
+{
+  "model": "y26s_640",
+  "rung": "ultra",
+  "limit": 0,
+  "fps": 0.0,
+  "extra": [],
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/jetson_ultralytics_baseline.py",
+    "--engine",
+    "/tmp/ultra_s/yolo26s.engine",
+    "--annotations",
+    "/tmp/instances_val2017.json",
+    "--images-dir",
+    "/tmp/yolo26-coco-val/val2017",
+    "--predictions",
+    "/tmp/paper/generality/locked/y26s_ultra/r0/predictions.json",
+    "--output",
+    "/tmp/paper/generality/locked/y26s_ultra/r0/report.json"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "phase": "sampler",
+  "condition": "uint8_seq_stream_sampled",
+  "sample_power": true,
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/jetson_fast_eval.py",
+    "--engine",
+    "/tmp/yolo26n_84172_uint8_fp16_opt3.engine",
+    "--memory",
+    "pinned",
+    "--stream-sync",
+    "--limit",
+    "2000",
+    "--annotations",
+    "/tmp/instances_val2017.json",
+    "--images-dir",
+    "/tmp/yolo26-coco-val/val2017",
+    "--predictions",
+    "/tmp/paper/sampler/default/uint8_seq_stream_sampled/r1/predictions.json",
+    "--output",
+    "/tmp/paper/sampler/default/uint8_seq_stream_sampled/r1/report.json"
+  ]
+}

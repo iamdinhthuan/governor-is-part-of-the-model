@@ -1,0 +1,46 @@
+{
+  "engine": "/tmp/yolo26n_84172_uint8_fp16_opt3.engine",
+  "size": 640,
+  "input": "uint8 in-graph preprocessing",
+  "memory": "pinned",
+  "prefetch": true,
+  "overlap": true,
+  "decode_workers": 1,
+  "arrival_fps": 0.0,
+  "images": 5000,
+  "images_timed": 4980,
+  "prediction_count": 732651,
+  "latency_ms": {
+    "mean": 15.724923427320851,
+    "median": 14.638154498243239,
+    "p95": 18.248061002668692
+  },
+  "latency_p99_ms": 26.040512651088648,
+  "gpu_enqueue_to_done_ms": {
+    "mean": 8.417377426620618,
+    "median": 7.927670500066597,
+    "p95": 10.39104318988393
+  },
+  "throughput_images_per_s": 174.96363781214848,
+  "process_cpu_ms_per_image": 10.604766849799198,
+  "sync": "event",
+  "sched_request": "default",
+  "cuda_device_flags": 8,
+  "window_unix": [
+    1791120660.1707819,
+    1791120688.63385
+  ],
+  "latency_definition": "start of this image's JPEG decode to finished COCO rows",
+  "power": {
+    "rail": "VDD_IN (module input)",
+    "samples": 570,
+    "mean_power_w": 14.24380756723706,
+    "energy_j": 405.4224668811448,
+    "duration_s": 28.46306824684143,
+    "tj_start_c": 58.875,
+    "tj_max_c": 62.781,
+    "gpu_mhz_mean": 998.0915492957746,
+    "max_core_cpu_mhz_mean": 1722.3211267605634,
+    "energy_per_image_mj": 81.41013391187647
+  }
+}

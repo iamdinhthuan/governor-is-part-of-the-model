@@ -1,0 +1,33 @@
+{
+  "model": "y26n_640_uint8",
+  "idle_ms": 0,
+  "note": "emc_pinned_3199",
+  "gpu_compute_ms": {
+    "min": 4.98438,
+    "max": 5.08105,
+    "mean": 5.05432,
+    "median": 5.05762
+  },
+  "qps": 197.668,
+  "images_timed": 2965,
+  "window_unix": [
+    1791278114.0573664,
+    1791278129.0573664
+  ],
+  "emc_mhz_min_max": [
+    2133,
+    3199
+  ],
+  "power": {
+    "rail": "VDD_IN (board input)",
+    "samples": 299,
+    "mean_power_w": 12.985814389565816,
+    "energy_j": 193.80548636350977,
+    "duration_s": 14.924399852752686,
+    "tj_start_c": 58.437,
+    "tj_max_c": 59.593,
+    "gpu_mhz_mean": 816.0,
+    "max_core_cpu_mhz_mean": 1685.875585284281,
+    "energy_per_image_mj": 65.3644136133254
+  }
+}

@@ -1,0 +1,28 @@
+\begin{table*}[t]
+\centering
+\caption{Streaming at fixed arrival rates (first 1,000 val2017 images, YOLO26n 640,
+default governors, mean of two runs). Latency runs from frame arrival to finished
+detection rows (ms); energy is module input energy per frame (mJ). ``sat.'' marks a pipeline
+that cannot sustain the arrival rate; its queue grows without bound, and the
+achieved rate is given instead of latency. $^\dagger$Near-saturated
+cell: the achieved rate is 29.8\,images/s against 30\,fps arrivals in
+both repeats, so the queue drains too slowly to clear between bursts
+and p95 includes the resulting queuing. Idle input power alone amounts to
+312, 156 and 78\,mJ per frame at 15, 30 and 60\,fps.}
+\label{tab:stream}
+\small
+\begin{tabular}{l rrr rrr rrr}
+\toprule
+& \multicolumn{3}{c}{15 fps} & \multicolumn{3}{c}{30 fps} & \multicolumn{3}{c}{60 fps} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10}
+Pipeline & p50 & p95 & mJ & p50 & p95 & mJ & p50 & p95 & mJ \\
+\midrule
+Ultralytics & 32.0 & 38.4 & 357 & 36.2 & 188.0$^\dagger$ & 201 & \multicolumn{2}{c}{sat.\ (31/s)} & 194 \\
+Float, sequential & 39.2 & 45.2 & 361 & 32.2 & 84.3 & 204 & \multicolumn{2}{c}{sat.\ (34/s)} & 187 \\
+uint8, seq., event & 27.4 & 33.4 & 353 & 21.6 & 25.8 & 203 & \multicolumn{2}{c}{sat.\ (50/s)} & 151 \\
++ prefetch & 26.8 & 33.3 & 354 & 26.7 & 33.2 & 198 & 20.9 & 99.3 & 123 \\
++ overlap, 2 workers & 85.3 & 91.8 & 352 & 51.9 & 58.7 & 196 & 35.5 & 49.1 & 117 \\
++ arrival-aware overlap & 27.0 & 33.1 & 354 & 26.5 & 33.2 & 198 & 20.7 & 40.6 & 122 \\
+\bottomrule
+\end{tabular}
+\end{table*}

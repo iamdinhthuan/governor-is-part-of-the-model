@@ -1,0 +1,115 @@
+\section{Compression screening and router details}
+\label{app:compression}
+
+Before the pipeline study, we spent most of our effort on the model.
+\Cref{tab:compression} summarizes the screening. All of it was done on
+a 1,024-image development split of COCO train2017, disjoint from
+val2017, with official COCOeval. Each method was given the same short
+recovery budget: 1,024 training images, five epochs and one seed.
+
+\begin{table}[h]
+\centering
+\caption{Compression screening for YOLO26n (development split of 1,024
+train2017 images, one seed, five recovery epochs, TensorRT 10.3). The two
+blocks come from different measurement contexts and are not directly
+comparable. Block (a): median host-measured copy+execute+copy per image
+in a sequential application with \texttt{opt0} builds, which includes
+the down-clocking of \cref{sec:diagnosis}. Block (b): back-to-back
+\texttt{trtexec} GPU compute with \texttt{opt3} builds (driver keeps the
+GPU near 1,020\,MHz; AP$_S$ not recorded in that harness).}
+\label{tab:compression}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrr}
+\toprule
+Variant & AP & AP$_S$ & ms \\
+\midrule
+\multicolumn{4}{l}{\emph{(a) sequential application, \texttt{opt0} build}} \\
+FP16, fine-tuned (reference) & 0.4691 & 0.2164 & 21.8 \\
+Mixed QAT (50/99 conv INT8) & 0.4532 & 0.2038 & 24.4 \\
+L1 channel pruning (-5.6\% params) & 0.3741 & 0.1426 & 21.8 \\
+Object-risk pruning (-5.6\% params) & 0.4007 & 0.1613 & 21.8 \\
+L1 pruning + QAT & 0.3612 & 0.1372 & 24.3 \\
+Object-risk pruning + QAT & 0.3924 & 0.1594 & 24.5 \\
+\midrule
+\multicolumn{4}{l}{\emph{(b) back-to-back \texttt{trtexec}, \texttt{opt3} build}} \\
+FP16 & 0.4686 & -- & 4.07 \\
+Mixed QAT & 0.4593 & -- & 5.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Channel pruning removed 25\% of the output channels of four backbone
+convolutions, 5.6\% of the parameters. Our object-risk criterion
+scores channels by gradient-weighted foreground activations and a
+fake-INT8 perturbation proxy, and it kept 2.7 AP points more than L1
+magnitude pruning at the same budget. Both pruned models still lost 6.8--9.5
+AP points. Neither was faster after compilation, because the pruned
+early convolutions are not where TensorRT spends its time. Ultralytics QAT
+produced a mixed-precision engine (about half of the convolutions in
+INT8, the rest FP16/FP32 behind reformatting layers). It was slower than
+FP16 under both builder levels. Distillation from the fine-tuned teacher
+reduced AP in both pruning settings (L1: 0.369 to 0.338; object-risk:
+0.395 to 0.373 on the development split). We also pruned the parts that
+per-layer profiles showed to be expensive (P3/P4 classification-head
+channels and the attention block's feed-forward width). We found no
+stable change in engine time beyond run-to-run noise (about 6.5\,ms
+back-to-back with \texttt{opt0} builds; the table's 21.8\,ms column is
+the same engine inside a sequential application, and the difference
+between the two is the governor effect of \cref{sec:diagnosis}). These results come from a short recovery budget ---
+one seed, five epochs, \texttt{opt0} builds on one device. With
+longer training, the pruned models would likely recover more AP, and
+a full \texttt{opt3} build sweep might redistribute the engine time
+differently. They do
+not show that compression cannot work. They show something narrower:
+for a 2.6\,M-parameter NMS-free detector on this device and budget,
+the achievable engine-time savings are a small fraction of the
+3$\times$ governor effect of \cref{sec:diagnosis}.
+
+\subsection{The per-image resolution router}
+\label{app:router}
+
+We fit a logistic router on cheap pre-inference image statistics. It
+chooses a 512 or 640 engine per image, and its threshold was fixed to
+send 20\% of images to 640. On its 512-image held-out half, it slightly
+beat a fixed 576 engine in both AP and median time. We then froze it and evaluated it once on an independent, hash-verified 1,024-image train2017 split that played no part in fitting or threshold selection (\cref{sec:setup}). Against fixed 576 it lost 0.0089 AP (0.4386 vs.\
+0.4476) and 0.0147 AP$_S$, and both 512-image halves lost AP. Its
+median application time was 1.1--1.4\,ms lower across three paired
+runs (41.3--41.9 versus 42.4--43.2\,ms), but its
+95th-percentile time was not. Small-object recall at IoU 0.5 fell by
+1.55 points (paired image bootstrap 95\% interval $[-2.98, -0.19]$).
+We therefore rejected it. In the same units, the scheduling steps of
+\cref{tab:ladder} save 15--28\,ms of median per-image latency depending
+on the starting pipeline; the router's ${\approx}1.2$\,ms is at most
+one eleventh of that. The comparison is in latency rather than
+period: the router was evaluated in a sequential pipeline, so its
+saving does not compose with an overlapped schedule.
+
+\section{QNN userspace notes}
+\label{app:qnn}
+
+Two findings about the bundled \texttt{qai-appbuilder}/QNN userspace
+(QAIRT 2.50.40 wheel on QCM6490, V68 HTP) shaped the HTP campaign.
+First, it is not safe under concurrent inference: issuing calls from
+two contexts at once wedges the DSP session after a few hundred calls
+(an empty output or a session that never returns; retries and context
+rebuilds do not recover it). We can only speak for this bundled
+userspace as shipped --- the vendor SDK advertises multi-context
+support, which we did not exercise. Our pipeline therefore holds
+exactly one context and issues every NPU call from a single thread;
+overlap comes from pipelining decode, input fill and host NMS
+\emph{around} the serialized NPU calls. Under that discipline the
+whole campaign ran without a single failed call.
+
+Second, one harness bug is worth recording. An earlier version of the
+evaluation script passed the input buffer to the appbuilder wrapper
+unflattened, and the wrapper's reshape helper caught the resulting
+broadcast error and printed it on every call, inside the timed region
+(${\approx}1$\,ms per call at the shipped governor, more at pinned low
+clocks; predictions were unaffected --- the native call received the
+correct buffer). We fixed the call, reran the entire HTP campaign, and
+report only the corrected numbers; the fix moved the shipped-governor
+rungs by ${\approx}1$\,ms per call, the \texttt{performance} ladder by
+up to 13\% (the pinned core now spends its cycles on dispatch instead
+of printing), and the 806\,MHz probe point by 8\,ms per call, so
+it mattered most exactly where the paper looks at clock sensitivity.

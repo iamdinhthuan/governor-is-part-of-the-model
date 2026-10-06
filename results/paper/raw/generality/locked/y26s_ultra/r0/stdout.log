@@ -1,0 +1,4 @@
+Loading /tmp/ultra_s/yolo26s.engine for TensorRT inference...
+[10/04/2026-23:07:52] [TRT] [I] Loaded engine size: 21 MiB
+[10/04/2026-23:07:52] [TRT] [I] [MemUsageChange] TensorRT-managed allocation in IExecutionContext creation: CPU +0, GPU +18, now: CPU 0, GPU 36 (MiB)
+{"fps": 0.0, "latency_median_ms": 15.534, "latency_p95_ms": 17.982, "images_per_s": 62.98, "predictions": 632764}

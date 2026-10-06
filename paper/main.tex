@@ -1,0 +1,106 @@
+\documentclass[a4paper,fleqn]{cas-dc}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{array}
+\usepackage{booktabs,multirow,xcolor}
+\usepackage{xurl}
+\usepackage{orcidlink}
+\usepackage{silence}
+\WarningFilter{hyperref}{Ignoring empty anchor}
+\usepackage[capitalise,nameinlink]{cleveref}
+\crefname{section}{Section}{Sections}
+\crefname{table}{Table}{Tables}
+\crefname{figure}{Fig.}{Figs.}
+\crefname{equation}{Eq.}{Eqs.}
+\newcommand{\RQ}[1]{\textbf{RQ#1}}
+\hypersetup{hidelinks}
+
+\emergencystretch=3em
+\hbadness=10000
+
+\graphicspath{{figs/}}
+
+\begin{document}
+
+\shortauthors{D.T. Nguyen et al.}
+\shorttitle{The governor is part of the model}
+\title[mode=title]{The governor is part of the model: duty-cycle-aware
+deployment of object detectors on edge accelerators}
+
+\author[mymainaddress]{Dinh Thuan Nguyen\orcidlink{0009-0008-6467-203X}}
+\ead{nguyendinhthuan.st@tdtu.edu.vn}
+\author[mymainaddress]{Lam Phuong Nguyen\orcidlink{0009-0007-3439-5871}}
+\ead{nguyenphuonglam.st@tdtu.edu.vn}
+\author[mysecondaryaddress]{Vinh Huy Nguyen\orcidlink{0009-0006-0878-9714}}
+\ead{nguyenvinhhuy@dtu.edu.vn}
+\author[mythirdaddress]{Sy Vu Quang}
+\ead{vuquangsy@tdtu.edu.vn}
+\author[fourthaddress]{Mohan Rajesh Elara\orcidlink{0000-0001-6504-1530}}
+\ead{rajeshelara@sutd.edu.sg}
+\author[mythirdaddress]{Anh Vu Le\orcidlink{0000-0002-4804-7540}\corref{mycorrespondingauthor}}
+\cortext[mycorrespondingauthor]{Corresponding author.}
+\ead{leanhvu@tdtu.edu.vn}
+
+\address[mymainaddress]{Faculty of Electrical and Electronics Engineering, Ton Duc Thang University, Ho Chi Minh City, Vietnam}
+\address[mysecondaryaddress]{Center of Visualization and Simulation, Duy Tan University, Da Nang, Vietnam}
+\address[mythirdaddress]{Advanced Intelligent Technology Research Group, Faculty of Electrical and Electronics Engineering, Ton Duc Thang University, 19 Nguyen Huu Tho Street, Tan Phong Ward, District 7, Ho Chi Minh City 700000, Vietnam}
+\address[fourthaddress]{ROAR Lab, Engineering Product Development, Singapore University of Technology and Design, Singapore}
+
+\input{sections/abstract.tex}
+
+\begin{highlights}
+\item On Jetson, the stock graphics governor triples serial inference time.
+\item Host restructuring beats a maximum-clock serial pipeline by $2.4\times$.
+\item Sleeping accelerator waits trigger host down-clocking and lose 20\% throughput.
+\item At camera rates, idle power dominates energy while scheduling sets latency.
+\item Pipeline gains transfer across neural accelerators, but mechanisms differ.
+\end{highlights}
+
+\begin{keywords}
+Edge AI \sep Object detection \sep DVFS \sep Embedded GPU \sep
+Energy efficiency \sep Jetson \sep Benchmarking methodology
+\end{keywords}
+
+\maketitle
+% The template's cas-common.sty comments out \printFirstPageNotes in the
+% two-column MaketitleBox, so the corresponding-author note and e-mail
+% addresses are emitted manually here as an unmarked first-page footnote.
+\begingroup
+\renewcommand{\thefootnote}{}%
+\footnotetext{\footnotesize\raggedright \textit{Corresponding author.}\\
+\textit{E-mail addresses:}
+\href{mailto:nguyendinhthuan.st@tdtu.edu.vn}{nguyendinhthuan.st@tdtu.edu.vn} (D.~T. Nguyen),
+\href{mailto:nguyenphuonglam.st@tdtu.edu.vn}{nguyenphuonglam.st@tdtu.edu.vn} (L.~P. Nguyen),
+\href{mailto:nguyenvinhhuy@dtu.edu.vn}{nguyenvinhhuy@dtu.edu.vn} (V.~H. Nguyen),
+\href{mailto:vuquangsy@tdtu.edu.vn}{vuquangsy@tdtu.edu.vn} (S.~V. Quang),
+\href{mailto:rajeshelara@sutd.edu.sg}{rajeshelara@sutd.edu.sg} (M.~R. Elara),
+\href{mailto:leanhvu@tdtu.edu.vn}{leanhvu@tdtu.edu.vn} (A.~V. Le).}%
+\endgroup
+\hypersetup{%
+  pdftitle={The governor is part of the model: duty-cycle-aware deployment of object detectors on edge accelerators},
+  pdfauthor={Dinh Thuan Nguyen; Lam Phuong Nguyen; Vinh Huy Nguyen; Sy Vu Quang; Mohan Rajesh Elara; Anh Vu Le},
+  pdfsubject={Edge inference pipelines under stock DVFS governors},
+  pdfkeywords={edge AI; object detection; DVFS; embedded GPU; energy efficiency; benchmarking methodology}}
+
+\input{sections/intro.tex}
+\input{sections/related.tex}
+\input{sections/sysmodel.tex}
+\input{sections/method.tex}
+\input{sections/diagnosis.tex}
+\input{sections/ladder.tex}
+\input{sections/stream.tex}
+\input{sections/model.tex}
+\input{sections/crossplatform.tex}
+\input{sections/discussion.tex}
+\input{sections/conclusion.tex}
+
+\appendix
+\counterwithin{table}{section}
+\counterwithin{figure}{section}
+\input{sections/appendix.tex}
+
+\input{sections/backmatter.tex}
+
+\bibliographystyle{elsarticle-num}
+\bibliography{refs}
+
+\end{document}

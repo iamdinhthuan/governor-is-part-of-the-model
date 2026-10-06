@@ -1,0 +1,12 @@
+\input{tables/generality.tex}
+
+\Cref{tab:generality} repeats the three main configurations for
+YOLO26s (10.0\,M parameters) and YOLOv10n. In every case the three pipelines agree in AP to within $4\times10^{-4}$, and the naive pipelines
+run the GPU at 306\,MHz under default governors. YOLOv10n behaves like
+YOLO26n: 30.8 images/s with Ultralytics, 212.4 with the full pipeline
+($6.9\times$), at 76.9 instead of 198.4\,mJ per image. YOLO26s has $3.9\times$ the parameters of YOLO26n and a $1.6\times$ longer engine time (6.78 versus 4.22\,ms back-to-back), and its full pipeline is limited by the GPU rather than the CPU. It reaches 140.1 images/s ($5.6\times$ Ultralytics), which is 95\% of
+the 146.9 inferences/s that \texttt{trtexec} achieves back-to-back, and
+locking clocks does not change it (140.4). Under the default governors,
+the full YOLO26s pipeline outruns the Ultralytics YOLO26n predictor with
+locked clocks (140.1 vs.\ 73.9 images/s), at 0.074 higher AP and 7.5 less
+mJ per image (131.8 vs.\ 139.3). This comparison changes the pipeline and the model at once, so it does not show that the larger model is the better choice; YOLO26n in the same full pipeline is faster still. It shows that the cost of the larger model is smaller than the cost of a naive pipeline, even when that pipeline runs with locked clocks. A deployment decision that compares model sizes in a naive pipeline therefore measures mostly the pipeline.

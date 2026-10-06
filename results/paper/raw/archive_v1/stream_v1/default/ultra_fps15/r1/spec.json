@@ -1,0 +1,25 @@
+{
+  "model": "y26n_640",
+  "rung": "ultra",
+  "limit": 1000,
+  "fps": 15,
+  "extra": [],
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/jetson_ultralytics_baseline.py",
+    "--engine",
+    "/tmp/ultra/yolo26n.engine",
+    "--annotations",
+    "/tmp/instances_val2017.json",
+    "--images-dir",
+    "/tmp/yolo26-coco-val/val2017",
+    "--predictions",
+    "/tmp/paper/stream/default/ultra_fps15/r1/predictions.json",
+    "--output",
+    "/tmp/paper/stream/default/ultra_fps15/r1/report.json",
+    "--limit",
+    "1000",
+    "--fps",
+    "15"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "model": "y26n_640",
+  "rung": "uint8_prefetch_event",
+  "limit": 1000,
+  "fps": 30,
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/jetson_fast_eval_v2.py",
+    "--engine",
+    "/tmp/yolo26n_84172_uint8_fp16_opt3.engine",
+    "--memory",
+    "pinned",
+    "--prefetch",
+    "--annotations",
+    "/tmp/instances_val2017.json",
+    "--images-dir",
+    "/tmp/yolo26-coco-val/val2017",
+    "--predictions",
+    "/tmp/paper/stream2/default/uint8_prefetch_event_fps30/r0/predictions.json",
+    "--output",
+    "/tmp/paper/stream2/default/uint8_prefetch_event_fps30/r0/report.json",
+    "--limit",
+    "1000",
+    "--fps",
+    "30"
+  ]
+}

@@ -1,0 +1,119 @@
+\section{Introduction}
+\label{sec:intro}
+
+Real-time object detection on embedded GPUs is usually evaluated with
+two numbers per model: accuracy on COCO~\cite{lin2014coco} and a
+latency taken from an isolated benchmark of the compiled engine.
+Efficiency research then works mainly on the model. Structured
+pruning~\cite{li2017pruning,fang2023depgraph},
+quantization-aware training~\cite{jacob2018quantization} and
+distillation~\cite{hinton2015distilling} are judged by how much engine
+latency they remove per unit of accuracy lost. Recent NMS-free
+detectors make this framing seem even more natural. YOLOv10~\cite{wang2024yolov10}
+and YOLO26~\cite{jocher2026yolo26,ultralytics2026yolo26} emit a fixed set of final detections
+from a one-to-one head, so the host only decodes the image and converts
+a few hundred output rows. With post-processing nearly gone, the engine
+benchmark should predict the application.
+
+We find that on an NVIDIA Jetson Orin Nano Super it does not. The FP16
+TensorRT engine of YOLO26n completes an inference in 4.2\,ms when run
+back-to-back. Inside a conventional sequential application that
+decodes a JPEG, letterboxes it, runs the engine and builds detection
+rows, the same engine takes 13.2\,ms. The model, input and builder are
+unchanged. What changes is the GPU's duty cycle. While the CPU decodes,
+the GPU idles, and the stock frequency governor responds by holding the
+GPU at its minimum clock of 306\,MHz, 30\% of its maximum. The
+application therefore never runs the model in the regime that the
+benchmark measures. This also changes how compression should be
+judged: a model that is 20\% cheaper in the benchmark would gain
+little in such an application --- at a fixed clock the saving is
+diluted by the host stages, and the clock itself does not move.
+
+We did not set out to study governors. We first tried to make
+YOLO26n cheaper: object-aware structured pruning, quantization-aware
+training (QAT), distillation, compiler-guided pruning of the most expensive
+head layers, and a per-image adaptive-resolution router. These variants
+either lost several AP points or did not run faster once compiled, and
+the router failed verification on held-out images. We then left the
+model alone and restructured only the host pipeline. Under the same
+default governors and with byte-identical predictions, that change gave
+$2.4\times$ the throughput of the best sequential pipeline even when the
+latter runs with all clocks locked at maximum, and $6.9\times$ that of
+the standard Ultralytics predictor.
+
+This paper is a systematic measurement study of that gap. It is guided
+by five research questions:
+\begin{itemize}
+\item[\RQ{1}] How does the GPU governor's response to an application's
+  duty cycle determine the in-application cost of a fixed engine, and
+  can a simple model describe it?
+\item[\RQ{2}] Which host-pipeline decisions matter for throughput and
+  energy, how large is each effect, and which of them interact with the
+  governor?
+\item[\RQ{3}] How do these decisions trade latency against energy when
+  frames arrive at camera rates rather than as a backlog?
+\item[\RQ{4}] How do model-level decisions (input resolution,
+  compression, model size) rank once the pipeline is fixed?
+\item[\RQ{5}] Do the findings carry over to other NMS-free detectors
+  and to other accelerator architectures?
+\end{itemize}
+
+\noindent Our contributions are:
+\begin{enumerate}
+\item A duty-cycle model of in-application engine time and energy
+  (\cref{sec:sysmodel}), checked against direct measurements
+  (\cref{sec:diagnosis}). Engine time scales with the inverse of the
+  measured clock. Using the GPU load reported by the driver, we show that
+  the measurements are consistent with a load-band governor whose
+  observed band is schedule- and board-specific, and that a sequential
+  pipeline sits at or below the observed band's top even at
+  the minimum clock, which is consistent with why it never leaves the floor. A split of energy into an idle
+  floor and a marginal term bounds streaming energy from above
+  (\cref{sec:stream}).
+\item A controlled, cumulative pipeline ablation on all 5,000 COCO
+  val2017 images (\cref{sec:ladder}). Scheduling variants produce
+  byte-identical predictions, so accuracy is held exactly constant. For
+  each variant we report official COCO AP, throughput, input energy, GPU
+  clock and CPU time, under both default and locked clocks, and we sweep
+  the number of decode workers. Among other effects, we show that the
+  choice between two CUDA synchronization calls costs 17--20\% of throughput
+  under the default governors and less than 1\% with locked clocks. A
+  controlled test traces this to the CPU governor: a sleeping wait lets
+  \texttt{schedutil} lower the clock of the host's frequency domain.
+  Keeping that domain busy recovers 97\% of the loss, and a per-task utilization clamp~\cite{linux2024uclamp}, set without root privileges, recovers most of it at lower energy. We also
+  show that garbage-collection pauses in a typical evaluation loop cost a fast pipeline 7.1\% of its measured throughput.
+\item A streaming evaluation at 15, 30 and 60\,fps (\cref{sec:stream}).
+  It shows that energy per frame is set mainly by idle power, that the
+  configuration with the highest throughput adds one frame period of
+  latency at low rates, and that an arrival-aware variant removes this
+  cost while keeping p95 latency at or below 41\,ms at all three rates.
+\item An evaluation of model-level decisions under a fixed, optimized
+  pipeline (\cref{sec:model}). Lower input resolution buys 27\% throughput in
+  a naive pipeline but only 2--4\% in an optimized one (6--10\% with
+  Python's cyclic garbage collector disabled). Our compression and
+  routing attempts are reported as negative results. On YOLO26s and
+  YOLOv10n, the pipeline effects are comparable in size to YOLO26n's
+  ($5.6$--$6.9\times$ over the standard predictor).
+\item A replication of the core experiments on two further boards
+  (\cref{sec:crossplatform}): a Raspberry Pi~5 with a Hailo-8 NPU, whose
+  accelerator has no user-visible frequency control, and a Rubik Pi~3
+  (Qualcomm QCM6490) measured twice, on its CPU and on its Hexagon NPU.
+  The pipeline ladder transfers ($3.3\times$ on the Pi~5 with
+  byte-identical predictions, $2.7\times$ before the wait-policy
+  change), while the accelerator-governor mechanism
+  does not appear where there is no accelerator governor; on CPU
+  inference the ladder flattens and sustained load becomes thermally
+  limited, and on the NPU stack the CPU governor becomes the largest
+  term (57\% on the matched overlap rungs), because the scheduler down-clocks the core that feeds
+  the accelerator (from 2.7\,GHz pinned to 0.95--1.8\,GHz, depending
+  on how little host work the schedule leaves on the critical path).
+\end{enumerate}
+
+We do not propose a new detector, compression method or governor, and
+pipelining itself is standard practice. The contribution is the
+measurement and its explanation. On this class of device, the
+interaction between the host pipeline and the frequency governor
+determines more of the end-to-end cost than the model-level choices
+that usually receive the attention. We provide all scripts, raw power
+traces and prediction hashes, so that the results can be checked and
+reproduced (see the data and code availability statement).

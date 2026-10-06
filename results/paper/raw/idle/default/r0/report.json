@@ -1,0 +1,19 @@
+{
+  "window_unix": [
+    1791125595.1804404,
+    1791125655.1804404
+  ],
+  "images_timed": 1,
+  "power": {
+    "rail": "VDD_IN (module input)",
+    "samples": 1200,
+    "mean_power_w": 4.657151756506971,
+    "energy_j": 279.4291053904182,
+    "duration_s": 60.0,
+    "tj_start_c": 54.687,
+    "tj_max_c": 54.781,
+    "gpu_mhz_mean": 306.0,
+    "max_core_cpu_mhz_mean": 1704.280467445743,
+    "energy_per_image_mj": 279429.1053904182
+  }
+}

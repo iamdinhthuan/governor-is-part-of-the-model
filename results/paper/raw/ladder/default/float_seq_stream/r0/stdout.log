@@ -1,0 +1,1 @@
+{"size": 640, "prefetch": false, "overlap": false, "fps": 0.0, "latency_median_ms": 29.523, "latency_p95_ms": 34.6, "images_per_s": 33.09, "cpu_ms_per_image": 22.62, "predictions": 732757}

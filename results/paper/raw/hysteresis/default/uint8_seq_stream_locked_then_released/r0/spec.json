@@ -1,0 +1,22 @@
+{
+  "phase": "hysteresis",
+  "condition": "uint8_seq_stream_locked_then_released",
+  "sample_power": true,
+  "command": [
+    "/usr/bin/python3",
+    "/tmp/jetson_fast_eval.py",
+    "--engine",
+    "/tmp/yolo26n_84172_uint8_fp16_opt3.engine",
+    "--memory",
+    "pinned",
+    "--stream-sync",
+    "--annotations",
+    "/tmp/instances_val2017.json",
+    "--images-dir",
+    "/tmp/yolo26-coco-val/val2017",
+    "--predictions",
+    "/tmp/paper/hysteresis/default/uint8_seq_stream_locked_then_released/r0/predictions.json",
+    "--output",
+    "/tmp/paper/hysteresis/default/uint8_seq_stream_locked_then_released/r0/report.json"
+  ]
+}

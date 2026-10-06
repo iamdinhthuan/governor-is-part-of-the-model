@@ -1,0 +1,12 @@
+{
+  "ap50": 0.5346058942942712,
+  "ap50_95": 0.3836603842167887,
+  "ap75": 0.4172377204751175,
+  "ap_large": 0.547493149479648,
+  "ap_medium": 0.42100817550194464,
+  "ap_small": 0.1899826109889157,
+  "dataset": "official COCO val2017",
+  "evaluated_images": 5000,
+  "evaluator": "pycocotools COCOeval bbox maxDets=100",
+  "prediction_count": 720573
+}

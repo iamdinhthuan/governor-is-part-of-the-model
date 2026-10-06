@@ -1,0 +1,25 @@
+\begin{table}[t]
+\centering
+\caption{CPU-clock test. Sequential uint8 pipeline pinned to CPU 0 (first 2,000 val2017
+images, default governors, mean of two runs). ``Busy loop'' marks a separate process
+spinning on CPU 1, which shares CPU 0's frequency domain; ``uclamp'' sets the pipeline's
+\texttt{uclamp.min} to 1024 (bottom block, a separate session with its own stream-sync
+and event-sync references, the latter added after review). MHz is the sampled clock of that domain's cluster; CPU ms counts only the pipeline
+process. All runs produced identical predictions.}
+\label{tab:cpufreq}
+\footnotesize
+\setlength{\tabcolsep}{1.0pt}
+\begin{tabular}{ll rrrrrrr}
+\toprule
+Sync & Remedy & img/s & p50 ms & CPU ms & MHz & GPU ms & W & mJ/img \\
+\midrule
+stream & -- & 41.0 & 23.8 & 15.1 & 1069 & 13.29 & 6.30 & 153.7 \\
+stream & busy loop & 49.0 & 19.9 & 10.1 & 1728 & 13.24 & 7.69 & 157.1 \\
+event & -- & 49.2 & 19.8 & 20.2 & 1728 & 13.21 & 7.47 & 152.0 \\
+event & busy loop & 49.2 & 19.8 & 20.2 & 1728 & 13.19 & 7.96 & 161.7 \\ \midrule
+stream & -- & 41.3 & 23.6 & 14.7 & 1088 & 13.29 & 6.33 & 153.2 \\
+stream & uclamp & 48.0 & 20.3 & 10.5 & 1450 & 13.23 & 6.81 & 142.0 \\
+event & -- & 49.0 & 19.9 & 20.2 & 1728 & 13.23 & 7.47 & 152.2 \\
+\bottomrule
+\end{tabular}
+\end{table}

@@ -1,0 +1,36 @@
+\begin{table*}[t]
+\centering
+\caption{Cumulative pipeline ablation for YOLO26n at 640 on all 5,000 COCO val2017
+images (batch 1, FP16 TensorRT, \texttt{MAXN\_SUPER}). Each cell is the mean of three
+rotated runs; run-to-run throughput ranges are below 2.5\% of the mean for every
+cell except the float sequential pipeline under default governors (33.1--34.3 images/s) and prefetch with stream synchronization under default governors (111.5--119.1 images/s). The $\dagger$ row is a diagnostic, not a cumulative step: it reverts the previous rung's event synchronization to isolate its effect (\cref{sec:sched}). The last two rows are variants of the full uint8 pipeline.
+AP is official COCOeval. Each row's predictions were byte-identical across
+all six runs (both clock settings), and rows with the same input type share one
+prediction file, except the Ultralytics baseline, which exports its own
+engine and has its own prediction hash. GPU MHz is the mean sampled \texttt{devfreq} clock under the default
+governor (always 1020 when locked). CPU ms is process CPU time per
+image; W is mean module input power (\texttt{VDD\_IN} rail). Table headers
+abbreviate images per second as img/s.}
+\label{tab:ladder}
+\small
+\setlength{\tabcolsep}{3.4pt}
+\begin{tabular}{lcc rrrrr rrr}
+\toprule
+& & & \multicolumn{5}{c}{Default governors} & \multicolumn{3}{c}{\texttt{jetson\_clocks}} \\
+\cmidrule(lr){4-8} \cmidrule(lr){9-11}
+Pipeline & AP & AP$_S$ & img/s & mJ/img & W & GPU MHz & CPU ms & img/s & mJ/img & W \\
+\midrule
+Ultralytics \texttt{predict} & 0.4026 & 0.1978 & 31.1 & 194.6 & 6.06 & 306 & 20.5 & 73.9 & 139.3 & 10.29 \\ \midrule
+Ours: float input, sequential & 0.4024 & 0.1975 & 33.9 & 187.6 & 6.36 & 306 & 21.9 & 59.9 & 165.3 & 9.90 \\
++ in-graph uint8 preprocessing & 0.4026 & 0.1977 & 40.1 & 156.1 & 6.26 & 306 & 17.8 & 90.1 & 119.1 & 10.74 \\
++ event synchronization & 0.4026 & 0.1977 & 50.0 & 150.7 & 7.54 & 306 & 21.5 & 90.4 & 119.9 & 10.84 \\
+$\dagger$ + decode prefetch (stream sync) & 0.4026 & 0.1977 & 116.1 & 83.7 & 9.72 & 736 & 13.5 & 158.6 & 86.2 & 13.67 \\
++ decode prefetch & 0.4026 & 0.1977 & 146.6 & 87.2 & 12.77 & 911 & 12.7 & 159.4 & 87.2 & 13.90 \\
++ post-processing overlap & 0.4026 & 0.1977 & 175.2 & 81.2 & 14.23 & 999 & 10.6 & 182.6 & 80.5 & 14.69 \\
++ second decode worker & 0.4026 & 0.1977 & 213.8 & 74.5 & 15.94 & 1019 & 11.6 & 217.9 & 74.5 & 16.24 \\ \midrule
+Full scheduling, float input & 0.4024 & 0.1975 & 89.2 & 109.9 & 9.80 & 599 & 21.6 & 98.5 & 122.2 & 12.03 \\ \midrule
+Full, arrival-aware overlap & 0.4026 & 0.1977 & 194.8 & 77.9 & 15.17 & 1011 & 12.8 & 214.2 & 75.2 & 16.12 \\
+Full, GC paused in timed loop & 0.4026 & 0.1977 & 230.2 & 71.6 & 16.49 & 1016 & 11.2 & 231.8 & 72.4 & 16.79 \\
+\bottomrule
+\end{tabular}
+\end{table*}
