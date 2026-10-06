@@ -65,10 +65,11 @@ by five research questions:
   (\cref{sec:diagnosis}). Engine time scales with the inverse of the
   measured clock. Using the GPU load reported by the driver, we show that
   the measurements are consistent with a load-band governor whose
-  observed band is schedule- and board-specific, and that a sequential
+  observed band is schedule-specific, and that a sequential
   pipeline sits at or below the observed band's top even at
   the minimum clock, which is consistent with why it never leaves the floor. A split of energy into an idle
-  floor and a marginal term bounds streaming energy from above
+  floor and a marginal term provides an empirical upper envelope for
+  the measured below-capacity streaming cells
   (\cref{sec:stream}).
 \item A controlled, cumulative pipeline ablation on all 5,000 COCO
   val2017 images (\cref{sec:ladder}). Scheduling variants produce
@@ -100,8 +101,9 @@ by five research questions:
   (Qualcomm QCM6490) measured twice, on its CPU and on its Hexagon NPU.
   The pipeline ladder transfers ($3.3\times$ on the Pi~5 with
   byte-identical predictions, $2.7\times$ before the wait-policy
-  change), while the accelerator-governor mechanism
-  does not appear where there is no accelerator governor; on CPU
+  change), while the Jetson-specific accelerator-governor signature is
+  not directly observed on the NPU stacks, where the identifiable
+  mechanisms shift to the host side; on CPU
   inference the ladder flattens and sustained load becomes thermally
   limited, and on the NPU stack the CPU governor becomes the largest
   term (57\% on the matched overlap rungs), because the scheduler down-clocks the core that feeds

@@ -3,10 +3,11 @@
 
 \subsection{Cumulative ablation on COCO val2017}
 
-\Cref{tab:ladder} and \cref{fig:ladder} report the cumulative ladder on
+\Cref{fig:timeline} illustrates the three schedules. \Cref{tab:ladder}
+and \cref{fig:ladder} report the cumulative ladder on
 all 5,000 val2017 images. Model, engine and accuracy are fixed. All
 uint8 rows share one prediction file, and both float rows share
-another. \Cref{fig:timeline} illustrates the three schedules.
+another.
 
 \begin{figure*}[t]
 \centering
@@ -14,9 +15,12 @@ another. \Cref{fig:timeline} illustrates the three schedules.
 \caption{Schematic of the three schedules. The layout is schematic,
 but the time axis uses the measured stage medians of the sequential
 float pipeline of \cref{sec:diagnosis} (decode 7.5\,ms, letterbox
-3.9\,ms, rows 1.7\,ms, engine 13.2\,ms host-measured
+3.9\,ms, rows ${\approx}1.5$\,ms, engine 13.2\,ms host-measured
 enqueue-to-completion at 306\,MHz; the device-side CUDA-event share is
-12.5\,ms, \cref{tab:fixedfreq}). Markers ($\blacktriangledown$) show
+12.5\,ms, \cref{tab:fixedfreq}; the stage medians sum to 26.0\,ms,
+while the measured period is 29.5\,ms --- 33.9 images/s --- the
+difference being per-image main-thread work outside the timed stages).
+Markers ($\blacktriangledown$) show
 when each frame's detections become ready. The bars illustrate the
 structure, not the measured throughputs. In (a) every host stage is GPU
 idle time, so the governor holds the minimum clock. In (b) and (c) the
@@ -39,7 +43,12 @@ three runs). Dashed lines in the right panel mark idle input power
 \textbf{Accuracy.}
 Our uint8 pipeline scores 0.40257 AP and 0.19766 AP$_S$, against 0.40259
 and 0.19779 for the Ultralytics predictor on its own engine. The
-float-input variant scores 0.40240. Reaching this agreement required one
+float-input variant scores 0.40240. For reference, the YOLO26 paper
+reports 40.9 AP for YOLO26n, measured on a desktop GPU with its own
+export~\cite{jocher2026yolo26}; on our device and evaluation settings
+the Ultralytics predictor itself scores 0.40259, so the
+${\approx}0.6$-point difference from the paper is a property of the
+evaluation stack, not of our pipeline. Reaching this agreement required one
 fix to our decoder. An earlier version subtracted the fractional
 letterbox padding, rather than the integer offset actually used to place
 the resized image. This shifted boxes by half a pixel whenever the
@@ -122,8 +131,12 @@ on the first 2,000 val2017 images (\cref{tab:sched}).
 \textbf{Answer to RQ2.}
 The decisions that matter are those that change the GPU's duty cycle:
 prefetching ($2.9\times$), overlapping post-processing and adding a
-decode worker (a further $1.5\times$), and, under the default governors, how the host waits for the GPU (20\%). The last effect acts through the CPU governor: a sleeping wait
-lowers the host's clock, and through the slower host also the GPU's. In-graph preprocessing matters
+decode worker (a further $1.5\times$), and how the host waits for the GPU (about a fifth of throughput at
+matched clocks, on every schedule we tested). The last effect acts through the CPU governor: a sleeping wait
+lowers the host's clock, and through the slower host also the GPU's
+--- on the two-worker schedule this cascade adds a further $2.2\times$
+on top of the wait penalty itself (40.4 images/s under the shipped
+governors versus 87.8 with locked clocks, same sleeping wait). In-graph preprocessing matters
 once the schedule is no longer sequential. Locking clocks substitutes
 for a good schedule only partially (1.8--2.3$\times$ for our
 sequential pipelines, 2.4$\times$ for the Ultralytics predictor) and

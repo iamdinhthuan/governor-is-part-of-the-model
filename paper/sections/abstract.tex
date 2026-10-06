@@ -7,16 +7,16 @@ on all 5,000 val2017 images. The same FP16 TensorRT engine that takes
 4.2\,ms back-to-back takes 13.2\,ms inside a sequential application,
 because the stock GPU governor holds the GPU at minimum clock. A
 duty-cycle model describes the measurements: engine time scales with
-the inverse of the clock (validated by a fixed-frequency sweep to
-4\%), interior-clock operating points sit in a 0.53--0.74
-GPU-load band while floor-clock and unlocked points fall outside,
+the inverse of the clock (3.7\% mean absolute error on a
+fixed-frequency sweep), interior-clock operating points cluster in an
+observed 0.53--0.74 GPU-load range,
 and a sequential pipeline released from the top
 clock falls to the floor in seconds. Restructuring only the host
 pipeline, under default governors and with identical predictions,
 gives $2.4\times$ the throughput of the best sequential pipeline at
 locked maximum clocks. The CPU governor is coupled to the same
 loop: a sleeping CUDA wait lets \texttt{schedutil} lower the host's
-clock and costs a fifth of throughput; a per-task utilization
+clock and costs a fifth of throughput even at matched clocks; a per-task utilization
 clamp, needing no root privileges, recovers most of it at
 lower energy. At camera rates below capacity, idle power sets energy
 per frame and the schedule sets latency. Replications on a

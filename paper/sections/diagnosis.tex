@@ -28,7 +28,7 @@ The same engine, however, runs in 4.1\,ms back-to-back in
 \texttt{trtexec} (zero gap, two 15\,s runs, medians 4.10 and
 4.13\,ms; the uint8-input engine of \cref{tab:dvfs} runs 4.2\,ms).
 On val2017, every
-sequential pipeline in \cref{tab:ladder} records a mean GPU clock of
+sequential pipeline of the ladder in \cref{sec:ladder} records a mean GPU clock of
 exactly 306\,MHz, the governor's floor. Its median enqueue-to-completion time is 13.2--13.3\,ms for both input types, $3.1$--$3.2\times$ the respective back-to-back time.
 
 \subsection{An idle-gap sweep isolates the governor}
@@ -82,7 +82,8 @@ The largest error (23\%) occurs in one of the
 two 16\,ms-gap YOLO26n runs. Its median compute time differs from its
 repeat's by 30\%, although their harmonic-mean clocks differ by only
 8\%. This suggests clock changes faster than our 20\,Hz sampling
-resolves. For the non-overlapped
+resolves --- independent measurements put the GPU clock-actuation lag
+at about 5\,ms on this SoC family~\cite{kang2026emc}. For the non-overlapped
 application rungs of \cref{tab:ladder}, \cref{eq:gf} overestimates the
 measured enqueue-to-completion time by 0.4--11.5\%. The positive bias is expected
 in part because \cref{eq:gf} attributes all of the engine time to the
@@ -121,15 +122,19 @@ is a possible confound for the sweep; prior work reports memory-clock
 effects of 11--48\% on edge-inference latency~\cite{kang2026emc}. We
 reran the sweep with three repeats per step and the EMC clock logged
 at ${\approx}4$\,Hz, plus two control runs with the EMC governor fully
-unlocked (an attempted EMC lock did not hold, so we control the
-confound by measurement rather than by pinning). The logged traces
+unlocked. An attempted EMC lock did not hold; independent measurements
+on the same SoC family document that EMC clock control fails silently
+on these board support packages unless a second lock bit is
+asserted~\cite{kang2026emc}, so we control the confound by measurement
+rather than by pinning. The logged traces
 show the memory clock bistable: constant 2133\,MHz at GPU clocks of
 306--510\,MHz, and alternating 2133--3199\,MHz from 612\,MHz up. Two
 checks bound its influence: fitting $a{+}b/f$ to only the
 EMC-constant points changes $b$ by 2\% (3.55 versus
 3.63\,GHz$\cdot$ms), and the unlocked control runs reproduce the
-pinned medians within 0.4\%. The inverse relation is therefore a
-GPU-clock effect, not a memory-clock artifact.
+pinned medians within 0.4\%. These controls show that the inverse
+trend is primarily a GPU-clock effect and cannot be explained by
+memory-clock scaling alone.
 
 \begin{table}[t]
 \centering

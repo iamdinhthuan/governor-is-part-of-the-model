@@ -10,12 +10,14 @@ logged; on the Jetson, maximum 67.4\,$^\circ$C in application runs and 69.2\,$^\
 verified after each phase). Remaining confounds are the small number of
 repeats per cell and the 20\,Hz sampling of power and clocks, which
 cannot resolve sub-50\,ms clock changes (\cref{sec:diagnosis}). The
-memory (EMC) clock could not be pinned on this board (a lock attempt
-did not hold); in the fixed-frequency sweep we logged it and bounded
-its influence to 2\% of the fitted slope (\cref{sec:diagnosis}), and
-locked runs pin it along with the CPU
-and GPU clocks, so the locked-versus-default comparisons include any
-memory-clock effect. Jetson campaign runs last 9--203\,s, and the
+memory (EMC) clock has its own governor. A direct devfreq lock attempt
+did not hold on this release --- a silent-failure mode documented
+independently on the same board family~\cite{kang2026emc} --- so in
+the fixed-frequency sweep, where only the GPU domain is pinned, we
+logged the memory clock and bounded its influence to 2\% of the fitted
+slope (\cref{sec:diagnosis}). \texttt{jetson\_clocks} does hold it
+(verified by readback, \cref{sec:setup}), so the locked-versus-default
+comparisons include any memory-clock effect. Jetson campaign runs last 9--203\,s, and the
 cross-board accuracy sweeps run longer (the Rubik CPU sweep takes
 ${\approx}26$\,min); we did not test
 deployment-length steady state, and the ramp visible in

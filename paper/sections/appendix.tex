@@ -85,6 +85,17 @@ one eleventh of that. The comparison is in latency rather than
 period: the router was evaluated in a sequential pipeline, so its
 saving does not compose with an overlapped schedule.
 
+\section{Streaming warm-up anchoring}
+\label{app:warmup}
+
+An earlier version of the streaming harness anchored the arrival clock
+before the harness's internal warm-up, so the first timed frames
+inherited the warm-up backlog: the Ultralytics predictor's 30\,fps p95
+read 447\,ms. With arrivals re-anchored at the warm-up boundary ---
+the numbers reported in \cref{sec:stream}, with predictions unchanged
+--- the same cell's p95 is 188\,ms: more than half of that tail was
+start-up bias. We report the re-anchored numbers throughout.
+
 \section{QNN userspace notes}
 \label{app:qnn}
 

@@ -33,7 +33,13 @@ GPU frequency jointly for inference under latency limits~\cite{nabavinejad2022ba
 Other DVFS work on mobile and edge processors learns frequency policies
 that avoid throttling~\cite{kim2021ztt}, models GPU latency under
 DVFS~\cite{han2025dvfs}, or controls frequency per operator on
-Jetson-class devices~\cite{zhang2026sparsedvfs}. Work on 3D mobile games
+Jetson-class devices~\cite{zhang2026sparsedvfs}. SparseDVFS also
+documents, as motivation, the antagonistic effect of the stock CPU and
+GPU governors on a Jetson Orin Nano: the CPU governor down-clocks the
+host during GPU-heavy phases, so the host is slow exactly when the GPU
+next requests data~\cite{zhang2026sparsedvfs}. \Cref{sec:sched}
+measures the same coupling inside a detection pipeline and traces it
+to the CUDA wait policy. Work on 3D mobile games
 showed that managing CPU and GPU frequencies jointly saves power compared
 with independent governors, because the two processors depend on each
 other's progress~\cite{pathania2014cpugpu}. Closest to our setting,
@@ -72,7 +78,15 @@ for I/O pipelining and power modes~\cite{prashanthi2023jetson}, and the
 latency distribution of a YOLO pipeline on Jetson Orin NX has been
 modeled stage by stage as a function of image resolution~\cite{zhang2026resolution}.
 MLPerf Inference standardizes measurement scenarios, separating offline
-throughput from server and single-stream latency~\cite{reddi2020mlperf}. We
+throughput from server and single-stream latency~\cite{reddi2020mlperf}.
+For autonomous-driving detection, R-TOD analyzes and minimizes the
+end-to-end delay from frame exposure to reported detections by
+restructuring capture and pipelining (on-demand capture, zero-slack and
+contention-free pipelines) without changing the
+network~\cite{jang2020rtod}; our arrival-aware variant
+(\cref{sec:stream}) is a simple member of the same family, and we
+measure its interaction with the stock governors and the idle floor
+rather than worst-case delay. We
 do not claim that pipelining or preprocessing bottlenecks are new. What we
 add is a measured account, on one device and stack, of how the
 governor's response to the application duty cycle changes the
@@ -91,11 +105,13 @@ than the pipeline effects we measure.
 \caption{Positioning against the closest measurement studies. ``Freq.''
 is how frequency enters the experiment: set directly by the
 experimenter, replaced by a newly designed governor (``new gov.''),
-or left to the stock governor and observed. ``Pipe.'':
+or left to the stock governor and observed (``modif.'': a modified
+stock governor; ``ucl.'': per-task utilization clamping). ``Pipe.'':
 the whole decode-to-detections pipeline is measured, not only the
 model. ``Acc.'': accuracy is held constant or verified per variant.
 ``Stream.'': camera-rate arrivals are measured, not only backlog
-throughput. A dash means the work does not address the aspect.}
+throughput. SLO: service-level objective. A dash means the work does
+not address the aspect.}
 \label{tab:related}
 \scriptsize
 \setlength{\tabcolsep}{1.6pt}
@@ -108,7 +124,7 @@ Nabavinejad et al.~\cite{nabavinejad2022batching} & batching w/ SLOs & direct & 
 SparseDVFS~\cite{zhang2026sparsedvfs} & per-operator DVFS & direct & -- & yes & -- \\
 Pathania et al.~\cite{pathania2014cpugpu} & 3D mobile games & modif. & partial & -- & -- \\
 Karzhaubayeva~\cite{karzhaubayeva2023cpugpu} & CNNs on TX2 & new gov. & -- & -- & -- \\
-Lotus~\cite{gong2024lotus} & detec., Orin Nano & direct & -- & -- & -- \\
+Lotus~\cite{gong2024lotus} & detec., Orin Nano & new gov. & -- & -- & -- \\
 Kang~\cite{kang2026emc} & gov.\ latency est. & direct & -- & -- & -- \\
 AI tax~\cite{richins2020aitax} & pre/post-processing & -- & yes & -- & -- \\
 Stage-wise latency~\cite{zhang2026resolution} & YOLO on Orin NX & stock & yes & -- & -- \\

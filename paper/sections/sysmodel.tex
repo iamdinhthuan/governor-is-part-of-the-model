@@ -25,9 +25,10 @@ For a fixed engine, we model the GPU time at clock $f$ as
   \label{eq:gf}
 \end{equation}
 where $G_{\max}$ is the time at the maximum clock $f_{\max}$. This
-assumes the engine is limited by the GPU clock and not by memory. When
-the clock changes during a run, the appropriate average is the
-time-weighted harmonic mean of the sampled clock.
+assumes the engine is limited by the GPU clock and not by memory. For
+variable-clock runs we use the time-weighted harmonic mean of the
+sampled clock as an approximate summary consistent with
+\cref{eq:gf}.
 
 \textbf{Schedules and duty cycle.}
 The period $T$ between completed images, and therefore throughput

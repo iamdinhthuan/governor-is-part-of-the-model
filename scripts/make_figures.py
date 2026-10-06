@@ -101,10 +101,10 @@ def dvfs():
 
 
 STREAM_PIPES = [("ultra", "Ultralytics"), ("float_seq_stream", "float, seq"),
-                ("uint8_seq_event", "uint8, seq, event"),
-                ("uint8_prefetch_event", "uint8, prefetch"),
-                ("uint8_overlap_event_w2", "uint8, full"),
-                ("uint8_adaptive_event_w2", "uint8, arrival-aware")]
+                ("uint8_seq_event", "seq, event"),
+                ("uint8_prefetch_event", "prefetch"),
+                ("uint8_overlap_event_w2", "full"),
+                ("uint8_adaptive_event_w2", "arrival-aware")]
 
 
 def stream():
@@ -131,7 +131,7 @@ def stream():
                     axes[0].plot(x, y, marker="o", markersize=5.5, markerfacecolor="none",
                                  markeredgecolor=line.get_color(), markeredgewidth=0.8,
                                  linestyle="none",
-                                 label="overloaded (finite run, queue grows)"
+                                 label="overloaded (queue grows)"
                                  if not overload_marked else None)
                     overload_marked = True
     idle_w = S["idle"]["default"]["power_w"]["mean"]
@@ -147,9 +147,10 @@ def stream():
     for ax in axes:
         ax.set_xticks([15, 30, 60])
         ax.grid(linewidth=0.3, alpha=0.5)
-    axes[0].legend(fontsize=5.5, loc="upper left")
+    axes[0].legend(fontsize=5, loc="upper left", handlelength=1.4,
+                   labelspacing=0.25)
     fig.tight_layout(pad=0.3)
-    fig.savefig(FIG / "stream.pdf")
+    fig.savefig(FIG / "stream.pdf", bbox_inches="tight")
 
 
 def resolution():
@@ -205,9 +206,10 @@ def resolution():
         ax.grid(linewidth=0.3, alpha=0.5)
     axes[0].set_xlim(0, 250)
     handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(handles, labels, fontsize=6, loc="upper center", ncol=2)
-    fig.tight_layout(pad=0.3, rect=(0, 0, 1, 0.9))
-    fig.savefig(FIG / "resolution.pdf")
+    fig.legend(handles, labels, fontsize=5, loc="upper center", ncol=3,
+               columnspacing=0.7, handlelength=1.4)
+    fig.tight_layout(pad=0.3, rect=(0, 0, 1, 0.88))
+    fig.savefig(FIG / "resolution.pdf", bbox_inches="tight")
 
 
 if __name__ == "__main__":
@@ -292,11 +294,12 @@ def traces():
         ax3.grid(linewidth=0.3, alpha=0.5)
         h1, l1 = ax3.get_legend_handles_labels()
         h2, l2 = ax3b.get_legend_handles_labels()
-        ax3.legend(h1 + h2, l1 + l2, fontsize=5.5, loc="center right")
+        ax3.legend(h1 + h2, l1 + l2, fontsize=5.5, loc="upper right",
+                   bbox_to_anchor=(1.0, 0.92))
     for ax in list(axes):
         ax.grid(linewidth=0.3, alpha=0.5)
     fig.tight_layout(pad=0.3)
-    fig.savefig(FIG / "traces.pdf")
+    fig.savefig(FIG / "traces.pdf", bbox_inches="tight")
 
 
 def measured_load(rung: str):
@@ -330,9 +333,9 @@ def operating():
     ax.scatter([v[0] for v in pts.values()], [v[1] for v in pts.values()],
                marker="D", s=12, color="#d62728", label="application rungs (measured load)",
                zorder=3)
-    offsets = {"seq/event": (-6, -11), "seq/stream": (-6, -11), "float seq": (-30, -11),
-               "prefetch/stream": (-52, -2), "prefetch/event": (-50, 0), "overlap": (-30, -2),
-               "full": (-12, -9), "float full": (4, -3)}
+    offsets = {"seq/event": (-2, 6), "seq/stream": (-2, -14), "float seq": (-38, -3),
+               "prefetch/stream": (-56, -8), "prefetch/event": (-52, 4), "overlap": (-32, 6),
+               "full": (-12, -12), "float full": (4, -3)}
     for rung, (load, mhz) in pts.items():
         text = labels[rung]
         ax.annotate(text, (load, mhz), fontsize=5, xytext=offsets.get(text, (3, 3)),
@@ -351,7 +354,7 @@ def operating():
     fig.legend(handles, names, fontsize=5.5, loc="upper center", ncol=2,
                columnspacing=0.8, handletextpad=0.3)
     fig.tight_layout(pad=0.3, rect=(0, 0, 1, 0.86))
-    fig.savefig(FIG / "operating.pdf")
+    fig.savefig(FIG / "operating.pdf", bbox_inches="tight")
 
 
 def timeline():

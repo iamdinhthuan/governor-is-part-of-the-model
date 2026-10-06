@@ -32,7 +32,7 @@ The ordering that worked on this platform was:
 \begin{enumerate}
 \item Take host stages off the GPU's critical path first (decode
   prefetch, overlapped post-processing), and choose a wait that does not let the CPU governor lower the host's
-  clock (a spinning wait, or a per-task utilization clamp, which needed no root privileges on our system and costs less energy; \cref{sec:sched}).
+  clock (a spinning wait, or a per-task utilization clamp, which needed no root privileges on our system and costs less energy; \cref{sec:sched}). Use the clamp when a sleeping wait induces frequency collapse; it does not replace a non-blocking wait when the wait itself lies on the critical path (\cref{tab:uclamp2}).
 \item Move preprocessing into the engine once the CPU becomes the
   bottleneck. Its value grows from 18\% to $2.4\times$ as the schedule
   improves.

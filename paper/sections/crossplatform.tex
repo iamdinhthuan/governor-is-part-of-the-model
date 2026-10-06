@@ -93,11 +93,12 @@ and does not respond to duty cycle; the wait time inside that interval
 absorbs the schedule differences. Energy per image falls 1.8$\times$
 from sequential to the best variant. We stress that these milliJoules
 cover only the SoC rails; the NPU's own draw is on the unmonitored
-5\,V input, so absolute energies are a lower bound and only
-within-platform comparisons are meaningful --- and even those only
-between configurations that share the same engine and accuracy, since
-the unmonitored share can move with the engine; cross-engine energy
-comparisons on this board need module-level power measurement. Streaming at 15, 30 and
+5\,V input. These values therefore compare SoC-side energy only: they
+do not establish whole-system energy rankings, because the unmeasured
+Hailo-8 energy can itself move with the schedule. Within-platform
+comparisons remain meaningful between configurations that share the
+same engine and accuracy; cross-engine energy comparisons on this
+board need module-level power measurement. Streaming at 15, 30 and
 60\,fps is consistent with the Jetson's idle-floor pattern:
 sequential and overlapped pipelines differ by 9\% in energy per frame
 at 15\,fps (101.8 versus 111.1\,mJ, SoC side) and converge at
@@ -238,32 +239,33 @@ clock, or a cheaper model, is the only lever.
 \centering
 \caption{Pipeline ladder on the Rubik Pi 3 (CPU inference, 1,000
 val2017 images of which 980 are timed after warm-up, mean of two
-rotated repeats $\pm$ their standard deviation, reported as a spread
-(two repeats cannot support an interval); p50 is the median per-image end-to-end latency,
+rotated repeats with the repeat range in parentheses --- two repeats
+cannot support an interval; p50 is the median per-image end-to-end latency,
 \emph{infer} the ONNX Runtime call --- in the overlap rungs the decode
 workers share the cores that inference uses, so the call itself
 lengthens; no power sensor on this board).}
 \label{tab:rubikladder}
-\small
+\footnotesize
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{@{}llrrr@{}}
 \toprule
 Governor & Rung & img/s & p50 ms & infer ms \\
 \midrule
 \multirow{6}{*}{\texttt{schedutil}}
- & seq           & $3.26{\pm}0.43$ &  304 & 254 \\
- & prefetch      & $3.11{\pm}0.29$ &  641 & 269 \\
- & full w1       & $4.17{\pm}0.26$ &  896 & 415 \\
- & full w2       & $3.85{\pm}0.10$ & 1212 & 446 \\
- & full w2 spin  & $3.84{\pm}0.22$ & 1237 & 451 \\
- & full w3       & $4.04{\pm}0.17$ & 1415 & 426 \\
+ & seq           & 3.26 (2.96--3.56) &  304 & 254 \\
+ & prefetch      & 3.11 (2.91--3.31) &  641 & 269 \\
+ & full w1       & 4.17 (3.99--4.36) &  896 & 415 \\
+ & full w2       & 3.85 (3.78--3.92) & 1212 & 446 \\
+ & full w2 spin  & 3.84 (3.69--4.00) & 1237 & 451 \\
+ & full w3       & 4.04 (3.92--4.17) & 1415 & 426 \\
 \midrule
 \multirow{6}{*}{\texttt{performance}}
- & seq           & $2.97{\pm}0.11$ &  329 & 275 \\
- & prefetch      & $2.96{\pm}0.15$ &  671 & 281 \\
- & full w1       & $4.07{\pm}0.26$ &  913 & 424 \\
- & full w2       & $4.00{\pm}0.18$ & 1185 & 429 \\
- & full w2 spin  & $3.75{\pm}0.18$ & 1262 & 461 \\
- & full w3       & $3.97{\pm}0.19$ & 1443 & 434 \\
+ & seq           & 2.97 (2.89--3.05) &  329 & 275 \\
+ & prefetch      & 2.96 (2.86--3.06) &  671 & 281 \\
+ & full w1       & 4.07 (3.89--4.26) &  913 & 424 \\
+ & full w2       & 4.00 (3.88--4.13) & 1185 & 429 \\
+ & full w2 spin  & 3.75 (3.63--3.87) & 1262 & 461 \\
+ & full w3       & 3.97 (3.84--4.10) & 1443 & 434 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -295,14 +297,15 @@ score floor is ${\approx}0.01$ rather than the reference $0.001$ --- the same
 mechanism we flagged for the Hailo, twenty-fold milder.
 It truncates only the far tail (on six of the 5,000 images the stack
 emits no rows, all of them images whose float-stack detections score
-below $0.02$). A direct bound: quantizing the float stack's scores to
-$0.01$ steps and dropping the sub-$0.01$ tail lowers its AP from
-$0.4026$ to $0.3999$ ($-0.26$ points, AP$_S$ $-0.5$). That sensitivity
-check exercises only the score-floor mechanism --- not the
+below $0.02$). A direct sensitivity check quantifies this mechanism alone: quantizing
+the float stack's scores to $0.01$ steps and dropping the sub-$0.01$
+tail lowers its AP from $0.4026$ to $0.3999$ ($-0.26$ points, AP$_S$
+$-0.5$), which is about 7\% of the 3.9-point gap between the two
+stacks. The check exercises only the score floor --- not the
 quantization of boxes, features or the two stacks' different error
-distributions --- so the 7\% is the floor's measured contribution in
-that sensitivity test, one contributor rather than a bound on the
-full INT8 gap. Within the NPU stack, predictions
+distributions --- so the remaining 93\% of the gap lies elsewhere:
+the score floor is one measured contributor, not a bound on the full
+INT8 gap. Within the NPU stack, predictions
 are byte-identical across every ladder rung, repeat and governor
 (sha256 prefix \texttt{09de71d67bad} on the ladder subset), and the
 accuracy run's rows for those images match row for row. Each accuracy
@@ -331,7 +334,15 @@ non-spinning rung reaches 27.8) and $+52$\% under
 \texttt{performance} (28.8 to
 43.6\,images/s), where the best rung saturates the accelerator: its
 22.9\,ms period matches the effective per-call service time under
-load, marginally below the 24.4\,ms isolated-call median. That
+load, marginally below the 24.4\,ms isolated-call median. One
+consequence is that a second decode worker does not pay off under
+\texttt{performance}: \texttt{full\_w2} is slower than
+\texttt{full\_w1} (39.9 versus 43.6\,images/s) and adds 39\,ms of p50
+latency, because NPU calls are serialized on one thread, so the extra
+worker cannot add accelerator parallelism and only lengthens the
+queue; under \texttt{schedutil} the two rungs tie (27.8 versus
+27.7\,images/s), the slowed feeder core being the binding constraint
+either way. That
 median corresponds to about 41 calls/s of back-to-back submission,
 and the best rung exceeds it (43.6\,images/s), so the isolated call
 overstates the loaded service time --- under sustained submission
@@ -366,7 +377,8 @@ by the constant term. The governor invariance we report below is a
 hypothesis consistent with the data, not a measurement. The spinning
 wait gains nothing on this stack (38.2 versus
 39.9\,images/s under \texttt{performance}; it also shows the widest
-repeat spread of the campaign, ${\pm}3.3$): with a single serial caller there is no
+repeat spread of the campaign, 34.9--41.5\,images/s across the two
+repeats): with a single serial caller there is no
 asynchronous-handle wait for the spinner to heat. As on the Hailo,
 the NPU exposes no user-visible frequency control, and within this
 decomposition the accelerator clock is not the moving part: what moves
@@ -430,6 +442,42 @@ from different QAIRT releases (2.49.40 versus 2.50.40) and different
 calibration sets --- so the $-7$ AP is the observed difference between
 these two configurations, not an isolated cost of fusing selection.
 
+\begin{table}[t]
+\centering
+\caption{Pipeline ladder on the Rubik Pi 3 with the Hexagon HTP NPU
+(INT8 context, host NMS; 1,000 val2017 images of which 980 are timed,
+mean of two rotated repeats with the repeat range in parentheses ---
+two repeats cannot support an interval; NPU calls serialized on one
+thread, see text). \emph{infer} is submission-to-completion of the
+NPU call; in the overlap rungs it spans the queue wait behind the
+single serialized caller, not pure accelerator time (the sequential
+rung gives the pure call: 24.4\,ms under \texttt{performance}).}
+\label{tab:rubikhtpladder}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Governor & Rung & img/s & p50 ms & infer ms \\
+\midrule
+\multirow{6}{*}{\texttt{schedutil}}
+ & seq           & 22.94 (22.82--23.07) &  43 & 28.3 \\
+ & prefetch      & 25.60 (25.52--25.68) &  77 & 28.8 \\
+ & full w1       & 27.75 (27.75--27.76) & 133 & 47.0 \\
+ & full w2       & 27.68 (27.65--27.71) & 173 & 46.2 \\
+ & full w2 spin  & 28.45 (28.26--28.65) & 173 & 53.2 \\
+ & full w3       & 27.70 (27.63--27.77) & 209 & 46.7 \\
+\midrule
+\multirow{6}{*}{\texttt{performance}}
+ & seq           & 28.75 (28.67--28.83) &  35 & 24.4 \\
+ & prefetch      & 31.86 (31.74--31.98) &  62 & 24.4 \\
+ & full w1       & 43.59 (43.57--43.61) &  89 & 40.1 \\
+ & full w2       & 39.89 (39.54--40.24) & 128 & 45.3 \\
+ & full w2 spin  & 38.22 (34.92--41.53) & 135 & 47.2 \\
+ & full w3       & 40.01 (37.47--42.56) & 146 & 42.5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
 \begin{table*}[t]
 \centering
 \caption{Head configuration comparison on the Rubik HTP: the standard
@@ -455,41 +503,6 @@ NMS-free, fused (3 outputs)        & 0.293 & 0.477 & 0.112 & 32.5 & 39.6 / 63.2 
 \bottomrule
 \end{tabular}
 \end{table*}
-
-\begin{table}[t]
-\centering
-\caption{Pipeline ladder on the Rubik Pi 3 with the Hexagon HTP NPU
-(INT8 context, host NMS; 1,000 val2017 images of which 980 are timed,
-mean of two rotated repeats $\pm$ their standard deviation, reported
-as a spread; NPU calls serialized on one
-thread, see text). \emph{infer} is submission-to-completion of the
-NPU call; in the overlap rungs it spans the queue wait behind the
-single serialized caller, not pure accelerator time (the sequential
-rung gives the pure call: 24.4\,ms under \texttt{performance}).}
-\label{tab:rubikhtpladder}
-\small
-\begin{tabular}{@{}llrrr@{}}
-\toprule
-Governor & Rung & img/s & p50 ms & infer ms \\
-\midrule
-\multirow{6}{*}{\texttt{schedutil}}
- & seq           & $22.94{\pm}0.12$ &  43 & 28.3 \\
- & prefetch      & $25.60{\pm}0.08$ &  77 & 28.8 \\
- & full w1       & $27.75{\pm}0.01$ & 133 & 47.0 \\
- & full w2       & $27.68{\pm}0.03$ & 173 & 46.2 \\
- & full w2 spin  & $28.45{\pm}0.19$ & 173 & 53.2 \\
- & full w3       & $27.70{\pm}0.07$ & 209 & 46.7 \\
-\midrule
-\multirow{6}{*}{\texttt{performance}}
- & seq           & $28.75{\pm}0.08$ &  35 & 24.4 \\
- & prefetch      & $31.86{\pm}0.12$ &  62 & 24.4 \\
- & full w1       & $43.59{\pm}0.03$ &  89 & 40.1 \\
- & full w2       & $39.89{\pm}0.35$ & 128 & 45.3 \\
- & full w2 spin  & $38.22{\pm}3.31$ & 135 & 47.2 \\
- & full w3       & $40.01{\pm}2.55$ & 146 & 42.5 \\
-\bottomrule
-\end{tabular}
-\end{table}
 
 \subsection{What transfers, and what does not}
 \label{sec:transfer}
@@ -583,18 +596,20 @@ the Hailo stack's shipped governor was already within 1\% of the
 pinned one at the best rung.
 
 \textbf{Answer to RQ5.}
-The findings carry over in outline, not in mechanism. On all four
-stacks (Jetson TensorRT, Hailo-8, Rubik CPU, Rubik HTP) the engine
-benchmark understates the in-application cost and the host-pipeline
-ladder recovers throughput without touching the engine; streaming
-queues exactly when the arrival rate passes the ladder-measured
-capacity. What shifts per platform is the moving part: the GPU
-governor on the Jetson, the runtime's wait path on the Pi, thermal
-saturation on the Rubik CPU, and the CPU governor acting on the NPU's
-host-dispatch share on the HTP. Across model architectures
+The findings carry over in outline, not in mechanism. Across all four
+stacks (Jetson TensorRT, Hailo-8, Rubik CPU, Rubik HTP), isolated
+engine or inference-call measurements understate the end-to-end
+application cost, but for different reasons: on the Jetson the gap is
+a GPU-governor-induced engine slowdown; on the Pi it is host and
+runtime overhead around a fixed-function NPU; on the Rubik CPU it is
+shared CPU resources and thermal saturation; and on the HTP it is the
+CPU-side dispatch share of each call and that share's response to the
+CPU governor. In each case the host-pipeline ladder recovers
+throughput without touching the engine, and streaming queues exactly
+when the arrival rate passes the ladder-measured capacity. Across model architectures
 (\cref{sec:generality}), YOLOv10n and the $1.6\times$ larger YOLO26s
 reproduce the same schedule effects ($5.6$--$6.9\times$ over the
-naive predictor), so the conclusions are not specific to YOLO26n.
+Ultralytics predictor), so the conclusions are not specific to YOLO26n.
 
 \begin{table*}[t]
 \centering

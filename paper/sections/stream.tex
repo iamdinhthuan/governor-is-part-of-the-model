@@ -31,13 +31,13 @@ and its latency grows with the run length. At 60\,fps this happens to
 the Ultralytics predictor (31.0 images/s achieved), the float sequential
 pipeline (34.2) and the uint8 sequential pipeline with event
 synchronization (49.7); \cref{tab:stream} rounds these to whole images
-per second. The Ultralytics predictor is also at the edge of its capacity at 30\,fps (29.8 images/s processed). Short stalls create queues that drain only slowly, and its latency distribution is strongly right-skewed (mean 55--64\,ms against medians of 36--37\,ms). An earlier version of this experiment anchored the arrival clock before the harness's internal warm-up, so the first timed frames inherited the warm-up backlog and the 30\,fps p95 read 447\,ms. With arrivals re-anchored at the warm-up boundary --- the numbers in \cref{tab:stream}, predictions unchanged --- the p95 is 188\,ms: more than half of that tail was start-up bias. We report the clean numbers. Dropping the first 100 frames of every run moves the below-capacity p95 values by at most 4\,ms (188 to 192\,ms for the Ultralytics predictor at 30\,fps), so the remaining tails are steady-state queue drain, not start-up transients.
+per second. The Ultralytics predictor is also at the edge of its capacity at 30\,fps (29.8 images/s processed). Short stalls create queues that drain only slowly, and its latency distribution is strongly right-skewed (mean 55--64\,ms against medians of 36--37\,ms). An earlier harness version anchored the arrival clock before its own warm-up, which inflated exactly this tail (\cref{app:warmup}). Dropping the first 100 frames of every run moves the below-capacity p95 values by at most 4\,ms (188 to 192\,ms for the Ultralytics predictor at 30\,fps), so the remaining tails are steady-state queue drain, not start-up transients.
 Capacity on a backlog therefore matters even for a camera application.
 It is the margin that absorbs transient stalls.
 
 \textbf{Energy is set by the idle floor.}
 At 15\,fps every pipeline uses between 352 and 361\,mJ per frame. The
-idle floor alone is 312\,mJ, or 87--89\% of the total. At 30\,fps the
+idle floor alone is 312\,mJ, or 86--89\% of the total. At 30\,fps the
 spread is 196--204\,mJ against a floor of 156\,mJ. The full pipeline,
 which uses 2.6$\times$ less energy per image than the Ultralytics
 predictor on a backlog, uses only 2.5\% less at 30\,fps (195.7 versus
@@ -53,7 +53,7 @@ regime the governor does what it is designed to do.
 
 A corollary concerns clock locking. With \texttt{jetson\_clocks}, the
 idle floor rises from 4.68 to 6.62\,W. At 30\,fps that is 221\,mJ per
-frame before any work is done, already 8--14\% more than the total energy
+frame before any work is done, already 8--13\% more than the total energy
 of every default-governor pipeline in \cref{tab:stream}. For a camera
 application below its capacity, locking clocks is an energy cost
 without a throughput benefit.
@@ -85,7 +85,8 @@ pipelines.
 The latency of the sequential pipeline also depends on the CPU
 governor. Its median falls from 27.4\,ms at 15\,fps to 21.6\,ms at
 30\,fps, although the work per frame is the same. At the lower rate the
-CPU is idle for longer between frames, and its CPU time per frame rises from 23.5 to 29.4\,ms. This is
+CPU is idle for longer between frames, and its CPU time per frame rises
+from 23.5\,ms at 30\,fps to 29.4\,ms at 15\,fps. This is
 consistent with \cref{sec:sched}'s backlog finding ---
 \texttt{schedutil} lowers the clock while the waiting thread sleeps
 --- but we did not log the CPU clock in the streaming runs, so we

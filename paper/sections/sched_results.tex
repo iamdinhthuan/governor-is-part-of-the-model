@@ -84,6 +84,15 @@ With prefetch, sleeping waits reduce throughput from about 141 to 107--111 image
 host leaves the GPU idle for longer, the GPU governor settles at 674--694
 instead of 860--866\,MHz, and the engine time rises from 4.6 to
 6.1--6.3\,ms. A drop in the CPU clock thus lowers the GPU clock as well.
+The underlying antagonism --- while the GPU computes, the host looks
+idle and is down-clocked, so it runs slowly exactly when the GPU next
+needs data --- has been described for the stock governors of the same
+board family~\cite{zhang2026sparsedvfs}. Our measurements add to that
+description in four ways: we trace the trigger to the CUDA wait policy
+(spinning versus sleeping, not GPU work per se), we bound the effect
+with the busy-loop and minimum-clock controls above, we test a
+per-task remedy that needs no root privileges, and we observe the
+effect propagating onward to the GPU clock through the duty cycle.
 
 \textbf{The clamp also lifts the GPU clock.}
 If the compounding runs from the host clock to the GPU clock, re-arming
@@ -106,6 +115,26 @@ sleeping through each completion, the wait delay itself, not the
 clock, binds. The spinning wait remains the stronger option for that
 rung.
 
+\textbf{The penalty is not a GIL artefact.}
+One alternative explanation for the sleeping-wait penalty is a convoy
+around CPython's global interpreter lock: the waiting thread holds the
+lock on entry to the blocking call, and other threads wait out the
+5\,ms switch interval. We tested this on the full two-worker schedule
+under locked clocks, comparing the default 5\,ms switch interval with
+a tenfold shorter one (0.5\,ms, set by \texttt{sys.setswitchinterval}
+before any CUDA work, two 2,000-image runs each, identical
+predictions). Throughput was 86.3--89.3 images/s with the default
+interval and 88.9--89.1 with the short one --- a 1.4\% change, within
+the repeat spread of these cells --- so lock convoying is not the
+mechanism. A same-session event-synchronized reference under the same
+locked clocks reaches 107.9--108.4 images/s, so with the clock cascade
+removed the sleeping wait costs this schedule 19\% --- the same
+fraction as on the sequential rungs above. The much larger gap under
+the shipped governors (40.4 images/s, \cref{tab:uclamp2}) is therefore
+the cascade itself: the sleeping wait lowers the CPU clock, the slower
+submission parks the GPU at its 306\,MHz floor, where the engine alone
+takes 12.5\,ms instead of 4.2 (\cref{tab:fixedfreq}).
+
 \begin{table}[t]
 \centering
 \caption{Utilization clamping on the optimized pipelines (uint8
@@ -115,7 +144,9 @@ default governors, mean of two repeats; a separate session from
 \emph{GPU ms} is enqueue-to-completion; \emph{GPU MHz} the
 harmonic-mean GPU clock; \emph{CPU ms} the process CPU time per
 image. All runs produced identical predictions (sha256 prefix
-\texttt{df5a48fe35cd}).}
+\texttt{df5a48fe35cd}). A locked-clock follow-up session on the same
+two-worker schedule (text) gives 86.3--89.3 images/s without a clamp
+and 107.9--108.4 with event synchronization.}
 \label{tab:uclamp2}
 \small
 \setlength{\tabcolsep}{2.2pt}

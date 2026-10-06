@@ -4,7 +4,7 @@
 images, default governors, mean of two runs). ``Busy loop'' marks a separate process
 spinning on CPU 1, which shares CPU 0's frequency domain; ``uclamp'' sets the pipeline's
 \texttt{uclamp.min} to 1024 (bottom block, a separate session with its own stream-sync
-and event-sync references, the latter added after review). MHz is the sampled clock of that domain's cluster; CPU ms counts only the pipeline
+and event-sync references). MHz is the sampled clock of that domain's cluster; CPU ms counts only the pipeline
 process. All runs produced identical predictions.}
 \label{tab:cpufreq}
 \footnotesize

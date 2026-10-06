@@ -6,7 +6,7 @@
 \Cref{tab:platform} lists the platform. Throughout the paper, ``default''
 means the stock governors: \texttt{nvhost\_podgov} for the GPU (eight
 steps from 306 to 1020\,MHz) and \texttt{schedutil} for the CPU.
-``Locked'' means \texttt{jetson\_clocks}, which pins the CPU, GPU and memory controller (EMC) clocks to their maxima~\cite{nvidia2024jetsonperf}. On this release it leaves the fan under its own thermal control unless asked otherwise, and we did not ask. Each locked
+``Locked'' means \texttt{jetson\_clocks}, which pins the CPU, GPU and memory controller (EMC) clocks to their maxima~\cite{nvidia2024jetsonperf}; we verified the EMC pin by readback at ${\approx}4$\,Hz, idle and under a 15\,s inference load (constant 3199\,MHz). On this release it leaves the fan under its own thermal control unless asked otherwise, and we did not ask. Each locked
 phase stores the default configuration in a fresh file, applies the lock,
 and restores the stored configuration afterwards. We read back the
 governor and clock limits after every phase. The two NumPy versions in
@@ -44,7 +44,7 @@ Power sensor & INA3221 \texttt{VDD\_IN} (module input), \\ & 20\,Hz \\
 \subsection{Replication platforms}
 \label{sec:replplatforms}
 
-Two further boards (\cref{tab:boards}, \cref{sec:crossplatform}) rerun
+Two further boards (\cref{sec:crossplatform}) rerun
 the core protocol with the smallest changes their stacks require. On
 the Raspberry Pi~5 the model is the Hailo Model Zoo's precompiled
 HEF (Hailo Executable Format) \texttt{yolov8n\_h8.hef}~\cite{hailo2023modelzoo} for the
@@ -217,11 +217,26 @@ hashed. All pipelines that differ only in scheduling produce
 byte-identical predictions in every repeat and under both clock
 policies, so for them accuracy is held exactly constant. Every development decision (compression screening, router fitting, router threshold) used two disjoint subsets of COCO train2017: a 1,024-image development split and an independent, hash-verified 1,024-image verification split. Because the pretrained checkpoint was itself trained on train2017, these splits are not unseen by the base model; they are held out only from our own fitting and selection, and their absolute AP is optimistic. We use them only for relative comparisons between variants. val2017 was used only for the measurements in this paper.
 
+\subsection{Use of AI assistance in the measurement process}
+\label{sec:aiassist}
+
+As declared in the back matter, an AI coding agent (Factory Droid)
+took part in the measurement campaigns. Concretely, the agent executed
+the campaign scripts on the boards over SSH, monitored runs for
+completion, transferred logs and traces, and drafted the aggregation
+and plotting code that turns raw traces into tables and figures. The
+authors designed every experiment, protocol and comparison, reviewed
+every script before it ran, and made every analysis decision. No
+reported number rests on the agent's own summaries: prediction files
+are hash-verified across runs, and every table and figure is
+regenerated from the archived raw traces by the published aggregation
+scripts (\cref{sec:data}).
+
 \subsection{Repetitions and statistics}
 
 Each backlog configuration on YOLO26n is repeated three times per clock
 policy. Resolution, generality, streaming and scheduling-flag
-experiments are repeated twice. Locked-clock generality runs are repeated once. Later sessions added follow-up experiments with the same software and the same protocol: driver-reported GPU load per pipeline (one run each), a lock-then-release test of the governor, sampler overhead, a sweep over the number of decode workers, utilization clamping (two runs each), utilization clamping of the prefetch and full pipelines under blocking synchronization (two runs each), a clocked repeat of the stage breakdown, a minimum-frequency CPU clamp test (two runs), a float-engine zero-gap \texttt{trtexec} benchmark (two runs), and a fixed-frequency GPU sweep (three 15\,s runs per devfreq step, only the GPU domain pinned, plus two control runs with all clocks unlocked; the memory clock was logged at ${\approx}4$\,Hz in both). In these runs a logger additionally recorded the driver's GPU load, the GPU clock and the clock of CPUs 0--3 at 20\,Hz. The order of configurations is rotated between repeats,
+experiments are repeated twice. Locked-clock generality runs are repeated once. Later sessions added follow-up experiments with the same software and the same protocol: driver-reported GPU load per pipeline (one run each), a lock-then-release test of the governor, a readback verification that \texttt{jetson\_clocks} holds the memory clock under load, sampler overhead, a sweep over the number of decode workers, utilization clamping on the sequential pipeline and on the prefetch and full pipelines under blocking synchronization (two runs each), a GIL switch-interval control on the full two-worker pipeline under locked clocks (two runs each), a clocked repeat of the stage breakdown, a minimum-frequency CPU clamp test (two runs), a float-engine zero-gap \texttt{trtexec} benchmark (two runs), and a fixed-frequency GPU sweep (three 15\,s runs per devfreq step, only the GPU domain pinned, plus two control runs with all clocks unlocked; the memory clock was logged at ${\approx}4$\,Hz in both). In these runs a logger additionally recorded the driver's GPU load, the GPU clock and the clock of CPUs 0--3 at 20\,Hz. The order of configurations is rotated between repeats,
 with a 10\,s pause between runs, and no other GPU work runs during a
 measurement. We report means and full ranges (minimum to maximum)
 rather than confidence intervals, because two or three repeats are too

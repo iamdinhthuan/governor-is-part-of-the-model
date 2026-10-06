@@ -26,6 +26,9 @@ Architecture).
     lock-then-release hysteresis, GC pauses, uclamp, stage breakdown),
     `jetson_round4.py` — EMC-logged fixed-frequency sweep (8 clocks x 3
     reps) and uclamp on the optimized pipelines,
+    `jetson_round5.py`, `gil_exec.py` — EMC readback under
+    `jetson_clocks` and the GIL switch-interval control on the full
+    two-worker pipeline,
     `jetson_run_resolution.py`, `jetson_routed_eval.py`,
     `jetson_run_routing_verify.py` — resolution sweep and the router,
     `jetson_cpufreq_test.py`, `uclamp_exec.py` — CPU-clock experiments,
@@ -53,21 +56,29 @@ Architecture).
 
 | Paper item | Source data | Generator |
 |---|---|---|
-| Table 1 (platforms) | manual | `paper/tables/` |
-| Table 2 (idle-gap sweep) | `raw/dvfs/` | `make_tables.py` |
-| Table 3 (fixed-frequency sweep) | `raw/eq1sweep_emc/` | prose numbers recomputed from `report.json` |
-| Table 4 (measurement boundaries) | `results/paper/summary.json` | `make_tables.py` |
-| Table 5 (ladder), Fig. 4 | `raw/ladder/` | `make_tables.py` |
-| Table 6 (streaming) | `raw/stream/` | `make_tables.py` |
-| Table 7 (CPU-clock test) | `raw/cpufreq/`, `raw/uclamp_event/` | `make_tables.py` |
-| Table 8 (uclamp on optimized pipelines) | `raw/uclamp2/` | mean of the two `report.json` files per cell |
-| Tables 9-12 (resolution, generality, GC) | `raw/resolution/` (incl. GC-off twins), `raw/generality/`, `extras.json` | `make_tables.py` |
-| Tables 13-17 (Pi, Rubik CPU, Rubik HTP) | `results/paper/pi.json`, `rubik*.json` | `aggregate_pi.py`, `aggregate_rubik.py` |
+| Table 1 (related-work positioning) | manual | `sections/related.tex` |
+| Table 2 (platform and software) | manual | `sections/method.tex` |
+| Table 3 (measurement boundaries) | manual | `sections/method.tex` |
+| Table 4 (idle-gap sweep) | `raw/dvfs/` | `make_tables.py` |
+| Table 5 (fixed-frequency sweep) | `raw/eq1sweep_emc/` | prose numbers recomputed from `report.json` |
+| Table 6 (ladder) | `raw/ladder/` | `make_tables.py` |
+| Table 7 (sync x CUDA device flags) | `raw/sched/` | `make_tables.py` |
+| Table 8 (CPU-clock test) | `raw/cpufreq/`, `raw/uclamp_event/` | `make_tables.py` |
+| Table 9 (uclamp on optimized pipelines) | `raw/uclamp2/` | mean of the two `report.json` files per cell |
+| Table 10 (streaming) | `raw/stream/` | `make_tables.py` |
+| Table 11 (other NMS-free detectors) | `raw/generality/` | `make_tables.py` |
+| Table 12 (replication platforms) | manual | `sections/crossplatform.tex` |
+| Tables 13-16 (Pi ladder, Rubik CPU ladder, Rubik HTP ladder, HTP head comparison) | `results/paper/pi.json`, `rubik*.json` | `aggregate_pi.py`, `aggregate_rubik.py` |
+| Table 17 (streaming on the NPU boards) | `results/paper/pi.json`, `rubik*.json` | `aggregate_pi.py`, `aggregate_rubik.py` |
 | Table A.1 (compression screening) | `modal_*.py` runs | manual (see Appendix A) |
+| Round-5 follow-ups (EMC readback under `jetson_clocks`; GIL switch-interval control; locked-clock references quoted in Sec. 6.2 and the Table 9 caption) | `raw/round5/` | `jetson_round5.py`, `gil_exec.py` |
 | Fig. 1 (dvfs) | `raw/dvfs/` | `make_figures.py` |
 | Fig. 2 (operating points) | `raw/load/`, `extras.json` | `make_figures.py` |
 | Fig. 3 (traces + lock-release) | `raw/ladder/`, `extras.json` | `make_figures.py` |
-| Figs. 5-7 (stream, resolution) | `raw/stream/`, `raw/resolution/` | `make_figures.py` |
+| Fig. 4 (schedule timeline) | schematic; measured stage medians (Table 3) | `make_figures.py` |
+| Fig. 5 (ladder bars) | `raw/ladder/`, `results/paper/summary.json` | `make_figures.py` |
+| Fig. 6 (stream) | `raw/stream/` | `make_figures.py` |
+| Fig. 7 (resolution) | `raw/resolution/` | `make_figures.py` |
 
 ## Verification
 
