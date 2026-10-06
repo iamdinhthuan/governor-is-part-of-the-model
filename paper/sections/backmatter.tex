@@ -5,14 +5,17 @@ campaign runner, aggregation and figure generation), the raw timestamped
 traces (Jetson: power, clocks, GPU load and temperature at 20\,Hz;
 Pi~5: PMIC power at ${\approx}10$\,Hz and clocks; Rubik: clocks at
 13--18\,Hz, no power rail), per-run reports, SHA-256 hashes of all
-prediction files, and the COCOeval summaries are provided as
-supplementary material, and the aggregation and plotting scripts that
-generate the tables and figures from these traces are included, so
-nearly every reported number can be recomputed; a small number of
-numbers remain verbatim in the LaTeX source (the
+prediction files, and the COCOeval summaries, and the aggregation and plotting scripts that
+generate the tables and figures from these traces are provided at
+\url{https://github.com/iamdinhthuan/governor-is-part-of-the-model},
+whose README maps every table and figure to its data and generator
+script, so nearly every reported number can be recomputed; a small
+number of numbers remain verbatim in the LaTeX source (the
 \cref{tab:compression} screening table and the prose router results,
-whose aggregators are included).
-[Repository link to be added by the authors.]
+whose aggregators are included). The complete raw campaign data,
+including the 1.6\,GB of prediction files whose SHA-256 hashes anchor
+the byte-identical-prediction claims, are archived on
+Zenodo~\cite{nguyen2026dataset}.
 
 \section*{CRediT authorship contribution statement}
 \textbf{Dinh Thuan Nguyen:} Conceptualization, Methodology, Software,
