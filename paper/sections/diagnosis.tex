@@ -45,7 +45,7 @@ ${\approx}30$\,ms between inferences pays about $3\times$ the minimum
 compute time per frame under the default governor. Camera-rate arrival
 is measured in \cref{sec:stream}.
 
-\begin{figure}[t]
+\begin{figure}[pos=t]
 \centering
 \includegraphics[width=\columnwidth]{figs/dvfs.pdf}
 \caption{Median GPU compute time of the uint8 FP16 engines in
@@ -195,7 +195,7 @@ equilibria (a pipeline whose load stops responding to the clock could
 settle elsewhere), but for this workload the release lands at the floor
 from every starting clock tested.
 
-\begin{figure}[t]
+\begin{figure}[pos=t]
 \centering
 \includegraphics[width=\columnwidth]{figs/operating.pdf}
 \caption{Governor operating points: GPU busy fraction or measured load versus
@@ -219,7 +219,7 @@ full schedule, and at longer, less regular intervals (up to about
 collector, whose pauses grow with the list of detection rows; their
 effect over whole runs is quantified in \cref{sec:ladder}.
 
-\begin{figure}[t]
+\begin{figure}[pos=t]
 \centering
 \includegraphics[width=\columnwidth]{figs/traces.pdf}
 \caption{(a) GPU clock and (b) module input power during the first 12\,s

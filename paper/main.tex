@@ -12,7 +12,14 @@
 \crefname{figure}{Fig.}{Figs.}
 \crefname{equation}{Eq.}{Eqs.}
 \newcommand{\RQ}[1]{\textbf{RQ#1}}
-\hypersetup{hidelinks}
+% Latin Modern Sans for the class's sans-serif captions and tables: the T1
+% default (EC sans) falls back to bitmap Type 3 fonts when cm-super is absent.
+\renewcommand{\sfdefault}{lmss}
+\hypersetup{hidelinks,
+  pdftitle={The governor is part of the model: duty-cycle-aware deployment of object detectors on edge accelerators},
+  pdfauthor={Dinh Thuan Nguyen; Lam Phuong Nguyen; Vinh Huy Nguyen; Sy Vu Quang; Mohan Rajesh Elara; Anh Vu Le},
+  pdfsubject={Edge inference pipelines under stock DVFS governors},
+  pdfkeywords={edge AI; object detection; DVFS; embedded GPU; energy efficiency; benchmarking methodology}}
 
 \emergencystretch=3em
 \hbadness=10000
@@ -75,11 +82,6 @@ Energy efficiency \sep Jetson \sep Benchmarking methodology
 \href{mailto:rajeshelara@sutd.edu.sg}{rajeshelara@sutd.edu.sg} (M.~R. Elara),
 \href{mailto:leanhvu@tdtu.edu.vn}{leanhvu@tdtu.edu.vn} (A.~V. Le).}%
 \endgroup
-\hypersetup{%
-  pdftitle={The governor is part of the model: duty-cycle-aware deployment of object detectors on edge accelerators},
-  pdfauthor={Dinh Thuan Nguyen; Lam Phuong Nguyen; Vinh Huy Nguyen; Sy Vu Quang; Mohan Rajesh Elara; Anh Vu Le},
-  pdfsubject={Edge inference pipelines under stock DVFS governors},
-  pdfkeywords={edge AI; object detection; DVFS; embedded GPU; energy efficiency; benchmarking methodology}}
 
 \input{sections/intro.tex}
 \input{sections/related.tex}

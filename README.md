@@ -45,6 +45,9 @@ Architecture).
     per-run reports -> `results/paper/*.json` summaries,
     `make_tables.py` — summaries -> `paper/tables/*.tex`,
     `make_figures.py` — raw traces -> `paper/figs/*.pdf`,
+    `make_overleaf.py`, `make_submission_package.py`,
+    `make_graphical_abstract.py` — single-file pdfLaTeX/Overleaf source
+    and journal submission files,
     `eval_predictions.py`, `compare_numeric.py`, `analyze_extras.py`,
     `analyze_model.py` — hash/accuracy verification and misc analysis.
 - `results/paper/` — aggregated summaries (`summary.json`, `pi.json`,
