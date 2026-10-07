@@ -2,64 +2,94 @@
 \label{sec:threats}
 
 \textbf{Internal validity.}
-Scheduling variants are compared at byte-identical predictions, so
-accuracy is not a confound. Timing confounds we controlled are run
-order (rotated), thermal state (10\,s pauses; junction temperature
-logged; on the Jetson, maximum 67.4\,$^\circ$C in application runs and 69.2\,$^\circ$C in the \texttt{trtexec} sweep, far from throttling --- the Rubik CPU runs, by contrast, sit at the 95\,$^\circ$C thermal limit and show a quantified 17\% drift, \cref{sec:rubik}), page-cache state
-(warm reads before each phase) and clock state (stored and restored,
-verified after each phase). Remaining confounds are the small number of
-repeats per cell and the 20\,Hz sampling of power and clocks, which
-cannot resolve sub-50\,ms clock changes (\cref{sec:diagnosis}). The
-memory (EMC) clock has its own governor. A direct devfreq lock attempt
-did not hold on this release --- a silent-failure mode documented
-independently on the same board family~\cite{kang2026emc} --- so in
-the fixed-frequency sweep, where only the GPU domain is pinned, we
-logged the memory clock and bounded its influence to 2\% of the fitted
-slope (\cref{sec:diagnosis}). \texttt{jetson\_clocks} does hold it
-(verified by readback, \cref{sec:setup}), so the locked-versus-default
-comparisons include any memory-clock effect. Jetson campaign runs last 9--203\,s, and the
-cross-board accuracy sweeps run longer (the Rubik CPU sweep takes
-${\approx}26$\,min); we did not test
-deployment-length steady state, and the ramp visible in
-\cref{fig:traces} means the first seconds of a run differ from the rest. The
-Ultralytics baseline uses its own engine export. Its AP agrees with
-ours to $3\times10^{-5}$, but engine tactics may differ slightly.
+Scheduling variants give byte-identical predictions, so accuracy is
+not a confound. Run order was rotated, the page cache was warmed before
+each phase, and clock state was stored, restored and verified. Thermal state was controlled with 10\,s pauses and
+junction-temperature logging. The Jetson peaked at
+67.4\,$^\circ$C in application runs and 69.2\,$^\circ$C under
+\texttt{trtexec}, far from throttling. The Rubik CPU runs, by contrast,
+sit at the 95\,$^\circ$C thermal limit and show a 17\% drift
+(\cref{sec:rubik}). Repeats per cell are few, and 20\,Hz power and
+clock sampling cannot resolve sub-50\,ms clock changes
+(\cref{sec:diagnosis}). A direct devfreq lock of the memory (EMC) clock
+did not hold on this release, a silent failure also reported on this
+board family~\cite{kang2026emc}. In the fixed-frequency sweep it was
+therefore logged and its influence bounded to 2\% of the fitted slope. \texttt{jetson\_clocks} does hold it
+(\cref{sec:setup}), so locked-versus-default comparisons include any
+memory-clock effect. Runs last 9--203\,s on the Jetson and
+${\approx}26$\,min for the Rubik CPU sweep, so deployment-length steady state
+was not tested. The ramp in \cref{fig:traces} shows that a run's first
+seconds differ from the rest. The Ultralytics baseline uses its
+own engine export. Its AP agrees to $3\times10^{-5}$, but engine
+tactics may differ slightly.
 
 \textbf{Construct validity.}
-\texttt{VDD\_IN} is the module's main input rail, not whole-system power: it excludes carrier-board loads such as the fan, USB peripherals and storage regulators. It still overstates the energy of the SoC compute rails alone, and the idle cost of locking clocks includes the higher memory clock as well as the CPU and GPU clocks. We did not validate the on-board sensor against an external power meter; our comparisons rely on its consistency between runs rather than on its absolute accuracy. Our ``latency'' starts when a JPEG
-file is available to the pipeline; decode is part of the measured work. Camera capture, image-signal-processor (ISP)
-processing and output
-transmission are excluded. Process CPU time is reported per image and
-includes all threads of the process.
+\texttt{VDD\_IN} is the module's main input rail. It excludes
+carrier-board loads (fan, USB peripherals, storage regulators) but
+overstates the energy of the SoC compute rails alone.
+The idle cost of locking clocks includes the higher memory, CPU and
+GPU clocks. The on-board sensor was not validated against
+an external meter, so comparisons rely on its run-to-run
+consistency, not its absolute accuracy. Latency starts when a
+JPEG file is available, so it includes decode but not camera capture,
+ISP processing or output transmission. Process CPU time
+includes all threads.
 
 \textbf{External validity.}
-The main study uses one Jetson Orin Nano Super with one software
-stack; \cref{sec:crossplatform} partially offsets this with a
-replication on a Hailo-8 NPU board and a Qualcomm board measured on both its CPU and its Hexagon NPU, but
-other Jetson modules, power modes, JetPack releases, hardware JPEG decode~\cite{chen2026nvjpeg} or DeepStream pipelines may shift the magnitudes, and other vendors' governors may behave differently. On the Pi~5 the Hailo-8 sits on the unmonitored 5\,V rail, so Pi energies cover the SoC only, and its HEF's on-chip NMS uses a 0.2 score threshold, so Pi accuracy is not comparable with the other boards. On the Rubik Pi~3 there is no usable power sensor; the NPU stack runs through a third-party bundled runtime (\texttt{qai-appbuilder}) rather than the vendor SDK, and its primary INT8 context ends in the standard head with host-side NMS (a fused NMS-free head was measured as a configuration comparison and costs 7 AP on this toolchain, \cref{sec:rubikhtp}), so its accuracy is not comparable with the float stacks; the QNN userspace wedged under concurrent inference calls, so our NPU pipeline serializes accelerator calls and overlaps host stages only; and multi-threaded CPU inference emits rows in a nondeterministic order, so prediction equivalence on the CPU stack is shown on canonicalized (sorted) rows --- identical in all 24 ladder cells --- rather than by a byte-level hash. Our pipelines are written in Python. A native C++ or DeepStream pipeline would shorten the host stages and could reach the GPU-bound regime with fewer decode workers. We also used batch size 1 throughout, as a camera application would. Batch size and GPU frequency are known to interact~\cite{nabavinejad2022batching}; we did not measure batching. The compression screening used a short recovery schedule
-on a development split with one seed and \texttt{opt0} TensorRT
-builds. It is evidence about that
-budget, not a general verdict on pruning or quantization.
+The main study uses one Jetson Orin Nano Super and one software stack,
+only partially offset by the replications of \cref{sec:crossplatform}. Other Jetson modules, power modes, JetPack releases, hardware
+JPEG decode~\cite{chen2026nvjpeg} or DeepStream pipelines may shift the
+magnitudes, and other vendors' governors may differ. Pi~5
+energies cover the SoC only, because the Hailo-8 sits on the unmonitored
+5\,V rail. Its on-chip NMS uses a 0.2 score threshold, so Pi accuracy is
+not comparable with the other boards. The Rubik Pi~3 has no usable power
+sensor. Its NPU stack uses a third-party runtime
+(\texttt{qai-appbuilder}) rather than the vendor SDK. Its INT8 model
+ends in the standard head with host-side NMS, so accuracy is not comparable with the float
+stacks (\cref{sec:rubikhtp}). That userspace wedged under concurrent
+calls, so the NPU pipeline serializes accelerator calls and overlaps
+only host stages. Multi-threaded CPU inference emits rows in
+nondeterministic order, so prediction equivalence there is shown on
+sorted rows (identical in all 24 ladder cells), not by a byte-level
+hash. The pipelines are
+written in Python; native C++ or DeepStream would shorten the
+host stages and could reach the GPU-bound regime with fewer decode
+workers. Batch size was 1 throughout, as in a camera application;
+its known interaction with GPU frequency~\cite{nabavinejad2022batching}
+was not measured. The compression screening (one seed, short recovery,
+\texttt{opt0} builds) is evidence about that budget, not a
+general verdict on pruning or quantization.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-For NMS-free detectors on an embedded GPU, the deployed cost of a
-model is not a property of the model alone. Under the stock governor,
-the same YOLO26n engine costs 4.2\,ms or 13.2\,ms depending on how busy
-the application keeps the GPU. A simple duty-cycle model, with
-inverse-clock engine time, a load-band governor and an idle-plus-marginal
-energy split, describes the measurements. Restructuring only the host pipeline, without locking clocks and at unchanged COCO accuracy, raised throughput $2.4\times$ over the best sequential pipeline with locked clocks and $6.9\times$ over the standard predictor, and cut energy per image $2.6\times$ relative to the latter. The CPU governor takes part in the same loop: a sleeping CUDA wait lowers the host's clock and, through the host, the GPU's. A per-task utilization clamp, set without root privileges, recovers most of this governor-mediated loss; on the full two-worker schedule the wait policy itself costs nothing, and only the synchronization boundary (24\% for stream synchronization) remains, at locked and default clocks alike. At camera rates
-below the pipeline's capacity the picture changes again: idle power
-then sets energy per frame, and the schedule mainly sets latency ---
-until the rate approaches capacity, where the schedule decides energy
-once more (117--123\,mJ per processed frame for the pipelines that
-keep up at 60\,fps, 151--194\,mJ for those that do not). The right schedule therefore
-depends on the arrival rate. The same restructuring changed
-the value of every model-level decision we examined. Lower resolution
-gave only $2$--$4$\% throughput in the optimized pipeline ($6$--$10$\%
-with the garbage collector disabled), against
-$27$\% in the naive one. Compression and routing
-gave less than scheduling. The pipeline effect was larger than the step from YOLO26n to the $1.6\times$ slower YOLO26s. On a Raspberry Pi~5 with a Hailo-8 NPU the same host restructuring gives $2.7\times$ ($3.3\times$ with the runtime's wait policy replaced) with identical predictions, even though the accelerator exposes no frequency control, while on a Qualcomm board the ladder flattens to $1.3\times$ on the CPU --- where thermal management becomes the binding constraint --- and on its Hexagon NPU the CPU governor becomes the largest term, because the scheduler down-clocks the core that feeds the accelerator. We hope that these results and the
-accompanying data encourage edge-detection research to report
-end-to-end, governor-aware measurements alongside engine benchmarks.
+On an embedded GPU, the deployed cost of an NMS-free detector is not a
+property of the model alone. Under the stock governor, the same
+YOLO26n engine costs 4.2\,ms or 13.2\,ms depending on how busy the
+application keeps the GPU. A simple duty-cycle model describes this
+behavior. Restructuring only the host pipeline, under default governors
+and at unchanged accuracy, gave $2.4\times$ the throughput of the best
+sequential pipeline at locked maximum clocks.
+
+The CPU governor is part of the same loop. On the sequential and
+prefetch schedules, a sleeping CUDA wait lets it lower the host clock
+and, through slower submission, the GPU clock. A per-task utilization
+clamp recovers most of this loss without busy-spinning. On the full
+two-worker pipeline the wait policy costs nothing under default and
+locked clocks. Only the stream-synchronization boundary still costs
+24\%.
+
+Below capacity, idle power sets energy per frame and the schedule sets
+latency. Near capacity the schedule decides energy again, so
+the right schedule depends on the arrival rate. Model-level decisions
+matter much less in an optimized pipeline. A lower input resolution gave
+$27$\% more throughput in the naive pipeline but only $2$--$4$\% in the
+optimized one ($6$--$10$\% with the garbage collector disabled).
+Compression and routing gained less than scheduling.
+
+The effect transfers to a Raspberry Pi~5 with a Hailo-8 NPU and to a
+Qualcomm board, but its mechanism moves to the host. The Hailo-8
+exposes no frequency control, the Qualcomm CPU stack is bound by thermal
+management, and on its Hexagon NPU the scheduler down-clocks the core
+that feeds the accelerator. Edge-detection efficiency should thus
+be reported for the whole pipeline under deployment governors.

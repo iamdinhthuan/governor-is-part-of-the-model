@@ -1,38 +1,35 @@
 \section{A duty-cycle model of the detection pipeline}
 \label{sec:sysmodel}
 
-We use a deliberately simple model to organize the measurements. It
-has three parts. The first describes how engine time depends on the
-GPU clock. The second describes how each pipeline schedule determines
-the GPU's duty cycle. The third describes how the governor picks a
-clock for that duty cycle. A fourth relation splits energy into an
+A deliberately simple model organizes the measurements. Its three
+parts describe how engine time depends on the GPU clock, how each
+pipeline schedule sets the GPU's duty cycle, and how the governor picks
+a clock for that duty cycle. A fourth relation splits energy into an
 idle floor and a marginal part. Each part is checked against
 measurements in \cref{sec:diagnosis,sec:ladder,sec:stream}.
 
 \textbf{Pipeline stages.}
-For each image the application performs a decode-and-letterbox stage
-$D$ on the CPU, an optional host normalization $N$ (float-input
-engines only), an engine execution $G$ on the GPU (including copies,
-which take under 1\,ms on this unified-memory device), and a row
-construction stage $R$ that converts the $300$ output rows to
-image coordinates. Let $M$ denote the remaining per-image work of the
-main thread (buffer fill, enqueue, synchronization).
+For each image, the CPU runs a decode-and-letterbox stage $D$ and,
+for float-input engines only, a host normalization $N$. The GPU runs
+the engine $G$, including copies, which take under 1\,ms on this
+unified-memory device. A row construction stage $R$ converts the $300$
+output rows to image coordinates. Let $M$ denote the remaining
+per-image work of the main thread (buffer fill, enqueue, synchronization).
 
 \textbf{Engine time.}
-For a fixed engine, we model the GPU time at clock $f$ as
+For a fixed engine, the GPU time at clock $f$ is modeled as
 \begin{equation}
   G(f) = G_{\max}\,\frac{f_{\max}}{f},
   \label{eq:gf}
 \end{equation}
 where $G_{\max}$ is the time at the maximum clock $f_{\max}$. This
 assumes the engine is limited by the GPU clock and not by memory. For
-variable-clock runs we use the time-weighted harmonic mean of the
-sampled clock as an approximate summary consistent with
-\cref{eq:gf}.
+variable-clock runs, the time-weighted harmonic mean of the sampled
+clock is used as an approximate summary consistent with \cref{eq:gf}.
 
 \textbf{Schedules and duty cycle.}
-The period $T$ between completed images, and therefore throughput
-$X = 1/T$, follows from which stages lie on the critical path. For
+The period $T$ between completed images, and thus throughput
+$X = 1/T$, depends on which stages lie on the critical path. For
 $k$ decode workers:
 \begin{align}
   T_{\text{seq}} &= D + N + G(f) + R + M, \label{eq:seq}\\
@@ -43,27 +40,31 @@ The GPU busy fraction is $u = G(f)/T$. In the sequential schedule every
 host millisecond is GPU idle time. \Cref{eq:pre} describes the prefetch
 transition: host stages leave the critical path, and the
 period becomes the maximum of the worker rate and the GPU-serial part.
-The stage times in it are clock-dependent, so we use it as a structure
-rather than a fitted predictor (\cref{sec:diagnosis} measures them at
-a down-clocked host; at the prefetch rung's higher clocks the decode
-rate is correspondingly higher).
-Overlap also removes $R$ (\cref{eq:ovl}).
+The stage times in it are clock-dependent, so it serves as a structure
+rather than a fitted predictor. \Cref{sec:diagnosis} measures them at a
+down-clocked host; at the higher clocks of the prefetch rung, the
+decode rate is correspondingly higher. Overlap also removes $R$
+(\cref{eq:ovl}).
 
 \textbf{Governor.}
-The GPU governor (\texttt{nvhost\_podgov}, whose devfreq sysfs node on
-our device exposes only a 25\,ms polling interval and no load
-thresholds) ships in NVIDIA's public Jetson Linux kernel
-sources~\cite{nvidia2025jetsonkernel}. We did not attempt to derive its thresholds from the source and instead characterize it empirically as a load-band controller. The driver exposes the load it acts on through sysfs, which lets us check the busy fraction $u$ directly (\cref{sec:diagnosis}). It raises $f$ while $u$ exceeds an upper threshold
-$u_{\text{hi}}$, lowers it while $u$ is below a lower threshold
-$u_{\text{lo}}$, and is clamped to $[f_{\min}, f_{\max}]$. A schedule
-therefore settles either at an interior clock with
-$u \in [u_{\text{lo}}, u_{\text{hi}}]$ or at one of the clamps. This view
-implies a fixed point that we observe. In \cref{eq:seq}, $u$ increases
-as $f$ decreases, because a slower GPU occupies a larger share of the
+The GPU governor (\texttt{nvhost\_podgov}) ships in NVIDIA's public
+Jetson Linux kernel sources~\cite{nvidia2025jetsonkernel}. Its devfreq
+sysfs node on the test device exposes only a 25\,ms polling interval
+and no load thresholds. The thresholds were not derived from the
+source; the governor is instead characterized empirically as a
+load-band controller. The driver exposes the load it acts on through
+sysfs, so the busy fraction $u$ can be checked directly
+(\cref{sec:diagnosis}). The governor raises $f$ while $u$ exceeds an
+upper threshold $u_{\text{hi}}$, lowers it while $u$ is below a lower
+threshold $u_{\text{lo}}$, and is clamped to $[f_{\min}, f_{\max}]$. A
+schedule therefore settles either at an interior clock with
+$u \in [u_{\text{lo}}, u_{\text{hi}}]$ or at one of the clamps. The
+measurements show a fixed point that this view implies. In
+\cref{eq:seq}, $u$ increases as $f$ decreases, because a slower GPU occupies a larger share of the
 period. If, even at $f_{\min}$, the sequential pipeline's busy fraction
 $G(f_{\min})/T_{\text{seq}}(f_{\min})$ stays below $u_{\text{hi}}$, the
-governor never has a reason to raise the clock. The application then
-runs at the minimum clock indefinitely, even though the GPU is busy
+governor has no reason to raise the clock, and the application runs at
+the minimum clock indefinitely, even though the GPU is busy
 about half of the time (measured loads 0.46--0.66 at the floor,
 \cref{sec:diagnosis}).
 
@@ -77,21 +78,20 @@ Energy per image splits as
     + \underbrace{\frac{P_{\text{board}} - P_{\text{idle}}}{X}}_{E_{\text{marg}}}.
   \label{eq:energy}
 \end{equation}
-The first term is an accounting reference --- the idle draw of the
-board in the measured power state, amortized over throughput --- not a
-universal lower bound: a different sleep or power-gating regime could
-go below it. On a backlog, a faster schedule shrinks the
-idle-reference term. For a
-camera that delivers frames at a fixed rate $r$ below the pipeline's
-capacity, the throughput is $X = r$ regardless of schedule, so
+The first term is an accounting reference: the idle draw of the board
+in the measured power state, amortized over throughput. It is not a
+universal lower bound, since a different sleep or power-gating regime
+could go below it. On a backlog, a faster schedule shrinks the
+idle-reference term. For a camera that delivers frames at a fixed rate
+$r$ below the pipeline's capacity, the throughput is $X = r$ regardless
+of schedule, so
 \begin{equation}
   E(r) \approx \frac{P_{\text{idle}}}{r} + E_{\text{marg}}.
   \label{eq:stream}
 \end{equation}
-The schedule then affects energy only through $E_{\text{marg}}$. The
-model therefore implies that pipeline optimization yields large energy
-savings on a backlog, but only small ones at fixed camera rates.
-\Cref{sec:stream} tests this prediction and finds that
-\cref{eq:stream} with the backlog $E_{\text{marg}}$ substituted is an
+The schedule then affects energy only through $E_{\text{marg}}$, so
+pipeline optimization should yield large energy savings on a backlog
+but only small ones at fixed camera rates. \Cref{sec:stream} tests
+this prediction and finds that \cref{eq:stream} with the backlog $E_{\text{marg}}$ substituted is an
 empirical upper envelope for the below-capacity cells, not an exact
 prediction.

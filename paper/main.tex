@@ -50,7 +50,7 @@ deployment of object detectors on edge accelerators}
 \begin{highlights}
 \item On Jetson, the stock GPU governor triples serial inference time.
 \item Host restructuring beats a maximum-clock serial pipeline by $2.4\times$.
-\item Sleeping accelerator waits trigger host down-clocking and lose 20\% of sequential throughput.
+\item Sleeping waits down-clock the host and cost 20\% of sequential throughput.
 \item At camera rates, idle power dominates energy while scheduling sets latency.
 \item Pipeline gains transfer across neural accelerators, but mechanisms differ.
 \end{highlights}

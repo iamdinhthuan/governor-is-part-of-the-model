@@ -3,35 +3,39 @@
 
 The power traces of the optimized schedules contain short dips
 (\cref{fig:traces}). In the timed window of the full pipeline under the
-default governor, we count six to seven dips of more than 2\,W below the
-median power per run, with onsets at about 4.1, 6.0, 8.3, 11.3, 14.8
-and 19.1\,s. The intervals between dips grow, from 1.9 to 4.3\,s. This pattern matches CPython's generational garbage collector. A
-full collection runs only when the number of long-lived objects has
-grown by 25\% since the last one, and every full collection traverses
-all of them~\cite{python2024gc}. Our evaluation
-harness, like most COCO evaluation scripts, keeps every detection as a
-Python dictionary until the end of the run. For val2017 these are
-732,651 detections, each a dictionary holding a box list, or about
-1.5 million objects tracked by the collector. Each full collection therefore stalls the main thread for
-longer, the GPU drains, and the power drops.
+default governor, each run contains six to seven dips of more than
+2\,W below the median power, with onsets at about 4.1, 6.0, 8.3, 11.3,
+14.8 and 19.1\,s. The intervals between dips grow from 1.9 to 4.3\,s.
+This pattern matches CPython's generational garbage collector. A full
+collection runs only when the number of long-lived objects has grown by
+25\% since the last one, and every full collection traverses all of
+them~\cite{python2024gc}. The evaluation harness, like most COCO
+evaluation scripts, keeps every detection as a Python dictionary until
+the end of the run. For val2017 these are 732,651 detections, each a
+dictionary holding a box list, or about 1.5 million objects tracked by
+the collector. Each full collection therefore stalls the main thread
+for longer, the GPU drains, and the power drops.
 
-To confirm the cause, we added a variant that performs one collection
+To confirm the cause, a variant was added that performs one collection
 before the timed window and then disables the cyclic collector until
 the window ends. Reference counting still frees all acyclic objects, so
 memory use is unaffected for this workload. The predictions are
-byte-identical to the other uint8 rows (\cref{tab:ladder}). The dips
-disappear: no run contains one, and the standard deviation of the
-sampled input power falls from 0.88--0.90\,W to 0.16--0.20\,W under the
-default governor and from 0.79--0.80\,W to 0.07--0.09\,W with locked
-clocks. Throughput rises from 213.8 to 230.2 images/s, so the collector costs 7.1\% of the measured throughput, and energy per image falls from 74.5 to 71.6\,mJ. With locked clocks the cost is 6.0\% (217.9 versus 231.8 images/s).
+byte-identical to the other uint8 rows (\cref{tab:ladder}). No run of
+this variant contains a dip. The standard deviation of the sampled
+input power falls from 0.88--0.90\,W to 0.16--0.20\,W under the default
+governor and from 0.79--0.80\,W to 0.07--0.09\,W with locked clocks.
+Throughput rises from 213.8 to 230.2 images/s, so the collector costs
+7.1\% of the measured throughput. Energy per image falls from 74.5 to
+71.6\,mJ. With locked clocks the cost is 6.0\% (217.9 versus
+231.8 images/s).
 
-We do not count this gain as a pipeline improvement. A deployed
-detector would pass detections on rather than accumulate them, and its
-collector would have little to scan. The effect matters for
-benchmarking. An evaluation loop that accumulates results penalizes a
-fast pipeline more than a slow one, because the same pauses are a larger
-share of a shorter run. The pauses also arrive at irregular, growing
-intervals, which inflates tail latency in long runs. Whenever we compare
-against the Ultralytics predictor we therefore use the rows with the
-collector enabled, which is the more conservative choice for our
+This gain is not counted as a pipeline improvement. A deployed detector
+would pass detections on rather than accumulate them, and its collector
+would have little to scan. The effect matters for benchmarking. An
+evaluation loop that accumulates results penalizes a fast pipeline more
+than a slow one, because the same pauses are a larger share of a
+shorter run. The pauses also arrive at irregular, growing intervals,
+which inflates tail latency in long runs. All comparisons against the
+Ultralytics predictor therefore use the rows with the collector
+enabled, which is the more conservative choice for the proposed
 pipeline. The rest of the paper follows the same rule.

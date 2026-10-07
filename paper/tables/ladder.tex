@@ -2,10 +2,10 @@
 \centering
 \caption{Cumulative pipeline ablation for YOLO26n at 640 on all 5,000 COCO val2017
 images (batch 1, FP16 TensorRT, \texttt{MAXN\_SUPER}). Each cell is the mean of three
-rotated runs; run-to-run throughput ranges are below 2.5\% of the mean for every
-cell except the float sequential pipeline under default governors (33.1--34.3 images/s) and prefetch with stream synchronization under default governors (111.5--119.1 images/s). The $\dagger$ row is a diagnostic, not a cumulative step: it reverts the previous rung's event synchronization to isolate its effect (\cref{sec:sched}). The last two rows are variants of the full uint8 pipeline.
+rotated runs. Run-to-run throughput ranges are below 2.5\% of the mean for every
+cell except two under default governors: the float sequential pipeline (33.1--34.3 images/s) and prefetch with stream synchronization (111.5--119.1 images/s). The $\dagger$ row is a diagnostic, not a cumulative step. It reverts the previous rung's event synchronization to isolate its effect (\cref{sec:sched}). The last two rows are variants of the full uint8 pipeline.
 AP is official COCOeval. Each row's predictions were byte-identical across
-all six runs (both clock settings), and rows with the same input type share one
+all six runs (both clock settings). Rows with the same input type share one
 prediction file, except the Ultralytics baseline, which exports its own
 engine and has its own prediction hash. GPU MHz is the mean sampled \texttt{devfreq} clock under the default
 governor (always 1020 when locked). CPU ms is process CPU time per

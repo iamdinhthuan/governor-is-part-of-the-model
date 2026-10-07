@@ -3,17 +3,19 @@
 
 \subsection{Platform and software}
 
-\Cref{tab:platform} lists the platform. Throughout the paper, ``default''
-means the stock governors: \texttt{nvhost\_podgov} for the GPU (eight
+\Cref{tab:platform} lists the platform. ``Default'' means the stock
+governors: \texttt{nvhost\_podgov} for the GPU (eight
 steps from 306 to 1020\,MHz) and \texttt{schedutil} for the CPU.
-``Locked'' means \texttt{jetson\_clocks}, which pins the CPU, GPU and memory controller (EMC) clocks to their maxima~\cite{nvidia2024jetsonperf}; we verified the EMC pin by readback at ${\approx}4$\,Hz, idle and under a 15\,s inference load (constant 3199\,MHz). On this release it leaves the fan under its own thermal control unless asked otherwise, and we did not ask. Each locked
-phase stores the default configuration in a fresh file, applies the lock,
-and restores the stored configuration afterwards. We read back the
-governor and clock limits after every phase. The two NumPy versions in
-\cref{tab:platform} differ because Ultralytics 8.4.172 requires the
-newer release; the difference touches only the short COCO
-row-conversion step, whose code is identical across our pipelines and
-the baseline.
+``Locked'' means \texttt{jetson\_clocks}, which pins the CPU, GPU and
+memory controller (EMC) clocks to their
+maxima~\cite{nvidia2024jetsonperf}. Readback at ${\approx}4$\,Hz, idle
+and under a 15\,s inference load, confirmed the EMC pin (constant
+3199\,MHz). Each locked phase
+saves the default configuration to a fresh file and restores it
+afterwards; governor and clock limits were read back after every phase. The two NumPy versions in \cref{tab:platform} differ
+because Ultralytics 8.4.172 requires the newer release. This affects
+only the short COCO row-conversion step, whose code is identical in
+the custom pipelines and the baseline.
 
 \begin{table}[t]
 \centering
@@ -35,7 +37,7 @@ Cooling & fan under thermal control \\
 CUDA / TensorRT & 12.6 / 10.3.0 \\
 Detector software & Ultralytics 8.4.172 \\
 Baseline runtime & PyTorch 2.5.0 (NVIDIA JetPack build) \\
-Host libraries & Python 3.10.12, OpenCV 4.10.0, \\ & NumPy 1.21.5 (ours), 1.26.4 (Ultralytics) \\
+Host libraries & Python 3.10.12, OpenCV 4.10.0, \\ & NumPy 1.21.5 (custom), 1.26.4 (Ultralytics) \\
 Power sensor & INA3221 \texttt{VDD\_IN} (module input), \\ & 20\,Hz \\
 \bottomrule
 \end{tabular}
@@ -46,75 +48,77 @@ Power sensor & INA3221 \texttt{VDD\_IN} (module input), \\ & 20\,Hz \\
 
 Two further boards (\cref{sec:crossplatform}) rerun
 the core protocol with the smallest changes their stacks require. On
-the Raspberry Pi~5 the model is the Hailo Model Zoo's precompiled
+the Raspberry Pi~5, the model is the Hailo Model Zoo's precompiled
 HEF (Hailo Executable Format) \texttt{yolov8n\_h8.hef}~\cite{hailo2023modelzoo} for the
 Hailo-8 (INT8, NMS on chip, score threshold 0.2 fixed at compile time),
-driven through HailoRT~4.23.0 asynchronous pipelines with the same
-prefetch/overlap/spin switches as our TensorRT pipeline. The
+run through HailoRT~4.23.0 asynchronous pipelines with the same
+prefetch/overlap/spin switches as the TensorRT pipeline. The
 replication tables use short rung names: \texttt{seq} is the sequential
 pipeline, \texttt{prefetch} adds decode prefetch, \texttt{full
 w1}/\texttt{w2}/\texttt{w3} add post-processing overlap with one, two
-or three decode workers, and \texttt{spin} replaces the sleeping wait; power comes
-from the Pi~5's power-management IC (PMIC) rail sum, which covers the
-system-on-chip (SoC) but not the 5\,V
-loads (the Hailo-8 itself, the fan, USB), so Pi energies are SoC-side
-lower bounds. The Rubik Pi~3 (Ubuntu 24.04.4, kernel 6.8) is measured with two stacks. The CPU
-stack is ONNX Runtime~1.30.0 (default thread
-settings)~\cite{onnxruntime} on the same
-YOLO26n ONNX graph as the Jetson float engine. The NPU stack runs an
-INT8 QNN context binary of the same graph (standard $(1{,}84{,}8400)$
-head, host NMS at the val settings) on the Hexagon HTP: the board's
-QNN~2.46 predates the QAIRT~2.49.40-built context, so we drive it
-through the \texttt{qai-appbuilder}~2.50.40 wheel's bundled runtime.
-Because that userspace is not robust under concurrent calls, all NPU
+or three decode workers, and \texttt{spin} replaces the sleeping wait.
+Pi~5 power is the rail sum of its power-management IC (PMIC), which
+covers the system-on-chip (SoC) but not the 5\,V loads (the Hailo-8
+itself, the fan, USB), so Pi energies are SoC-side lower bounds.
+
+The Rubik Pi~3 (Ubuntu 24.04.4, kernel 6.8) is measured with two
+stacks. The CPU stack is ONNX Runtime~1.30.0 (default thread
+settings)~\cite{onnxruntime} on the same YOLO26n ONNX graph as the
+Jetson float engine. The NPU stack runs an INT8 QNN context binary of
+the same graph on the Hexagon HTP, with the standard
+$(1{,}84{,}8400)$ head and host NMS at the val settings. The board's
+QNN~2.46 predates the QAIRT~2.49.40-built context, so the context runs
+through the bundled runtime of the \texttt{qai-appbuilder}~2.50.40
+wheel. This userspace is not robust under concurrent calls, so all NPU
 inference is serialized on one thread and host stages overlap around
-it. The board offers no trustworthy power sensor, so the Rubik sampler
-logs only the three CPU frequency domains and the SoC thermal zone; it
-does not sustain 20\,Hz, and its effective rate is 13--18\,Hz. The Pi
-sampler reads the PMIC's SoC-side power rails at an effective
-10\,Hz. Energy integrals are trapezoids over the actual sample
-timestamps. The HTP stack is
-bit-deterministic (hash-verified like the Jetson and Pi); the
-multi-threaded CPU stack emits rows in a nondeterministic order, so
-there we verify equivalence on canonicalized (sorted) prediction rows
-and by COCOeval on each rung's saved predictions.
+it. The board has no trustworthy power sensor; its sampler logs only
+the three CPU frequency domains and the SoC thermal zone, at an
+effective 13--18\,Hz rather than 20\,Hz. The Pi sampler reads the
+PMIC's SoC-side rails at an effective 10\,Hz. Energy integrals are
+trapezoids over the actual sample timestamps. The HTP stack is
+bit-deterministic (hash-verified, as on the Jetson and Pi). The
+multi-threaded CPU stack emits rows in nondeterministic order, so its
+equivalence is checked on sorted prediction rows and by COCOeval on
+each rung's saved predictions.
 
 \subsection{Models and engines}
 
-The main model is the pretrained YOLO26n checkpoint~\cite{jocher2026yolo26} (2.57\,M
-parameters). For generality we use YOLO26s (10.0\,M) and YOLOv10n
+The main model is the pretrained YOLO26n
+checkpoint~\cite{jocher2026yolo26} (2.57\,M parameters); generality is
+tested with YOLO26s (10.0\,M) and YOLOv10n
 (2.78\,M)~\cite{wang2024yolov10}. All are exported to ONNX with
-\texttt{nms=False}, which selects the one-to-one head and yields a
-$(1,300,6)$ tensor of boxes, scores and class indices with no NMS.
-Ultralytics 8.4.172 loads the YOLO26 head with the one-to-many branch
-by default. We therefore verified that \texttt{nms=False} selects the
-end-to-end branch in both export and prediction. Every engine is a
-static batch-1 FP16 TensorRT engine built on the device with builder optimization level~3~\cite{nvidia2024tensorrt}, except the
+\texttt{nms=False}, which yields a $(1,300,6)$ tensor of boxes, scores
+and class indices with no NMS. Ultralytics 8.4.172 loads the YOLO26
+head with the one-to-many branch by default, so \texttt{nms=False} was
+verified to select the one-to-one (end-to-end) branch in both export
+and prediction. Every engine is a
+static batch-1 FP16 TensorRT engine built on the device with builder
+optimization level~3~\cite{nvidia2024tensorrt}, except the
 compression-screening engines of \cref{sec:model}, built at level~0
-(level~3 reference rows are marked in \cref{tab:compression}). From each graph we build two engines:
+(level~3 reference rows are marked in \cref{tab:compression}). Two
+engines are built from each graph:
 \begin{itemize}
 \item a \emph{float} engine that takes a normalized
   $1{\times}3{\times}S{\times}S$ FP32 RGB tensor, and
 \item a \emph{uint8} engine whose graph begins with four ONNX operators
   (Cast, a BGR$\to$RGB Gather, Transpose, division by 255) and takes the
-  letterboxed $S{\times}S{\times}3$ uint8 BGR image directly. Its ONNX
+  letterboxed $S{\times}S{\times}3$ uint8 BGR image directly; its ONNX
   Runtime outputs are identical to the float graph's (maximum absolute
   difference 0 on test images).
 \end{itemize}
-The Ultralytics baseline uses an engine that Ultralytics exported on the
-device from the same checkpoint (\texttt{half=True, nms=False}), with
-the TensorRT builder defaults (optimization level 3, the same value we
-pin). It
+The Ultralytics baseline uses an engine exported on the device by
+Ultralytics from the same checkpoint (\texttt{half=True, nms=False})
+with the TensorRT builder defaults (optimization level 3, as above). It
 runs through \texttt{YOLO.predict} with confidence threshold 0.001 and
-at most 300 detections, the same settings as our pipelines.
+at most 300 detections, as the custom pipelines do.
 
 \subsection{Pipelines}
 \label{sec:pipelines}
 
-All our pipelines share one implementation and differ only in the
-switches below. They define the cumulative ladder of
-\cref{sec:ladder}. Each pipeline goes from a JPEG file to COCO-format
-rows: OpenCV decode, letterbox to $S{\times}S$ with value-114 padding,
+All custom pipelines share one implementation and differ only in the
+switches below, which define the cumulative ladder of
+\cref{sec:ladder}. Each goes from a JPEG file to COCO-format rows:
+OpenCV decode, letterbox to $S{\times}S$ with value-114 padding,
 copy into a pinned host buffer, TensorRT execution, output copy, and
 vectorized conversion of rows with confidence $\geq 0.001$ to
 original-image coordinates.
@@ -123,44 +127,40 @@ original-image coordinates.
   input with in-graph preprocessing.
 \item \emph{Synchronization}: \texttt{cudaStreamSynchronize} on the
   inference stream, or \texttt{cudaEventSynchronize} on an event
-  recorded after the output copy. In \cref{sec:sched} we additionally
-  set the CUDA device scheduling flag (\texttt{auto}, \texttt{spin} or
+  recorded after the output copy. \Cref{sec:sched} also
+  sets the CUDA device scheduling flag (\texttt{auto}, \texttt{spin} or
   \texttt{blocking-sync}) before context creation.
 \item \emph{Prefetch}: one or two worker threads decode and letterbox
   upcoming images while the current image is processed.
-\item \emph{Overlap}: double-buffered I/O, so that rows of image $i{-}1$
+\item \emph{Overlap}: double-buffered I/O, so rows of image $i{-}1$
   are built while image $i$ runs on the GPU. The \emph{arrival-aware}
   variant (\cref{sec:stream}) finishes the in-flight image immediately
   if the next frame is not yet available.
-\item \emph{Garbage collection}: by default Python's cyclic collector
-  runs as usual. One diagnostic variant (\cref{sec:gc}) disables it for
-  the timed window.
+\item \emph{Garbage collection}: Python's cyclic collector runs by
+  default; one diagnostic variant (\cref{sec:gc}) disables it for the
+  timed window.
 \end{itemize}
 
 \subsection{Workloads}
 
 \emph{Backlog}: all images are available at once and processed as fast
-as possible. This gives throughput and energy per image. \emph{Streaming}:
-frames become available at a fixed rate of 15, 30 or 60\,fps, using the
-first 1,000 val2017 images. Latency is measured from a frame's
-availability to its finished detection rows, and includes any queueing
-when the pipeline cannot keep up. We report the median (denoted p50
-throughout) and the p95. We prefer p95 to p99 because with 1,000-frame
-streams the p99 estimate rests on ten samples; p95 is the highest
-quantile we consider stable at this size. In both workloads the first 20 images
-are a warm-up and are excluded. In streaming runs the arrival schedule
-is re-anchored at the end of the warm-up, so the timed window always
-starts with an empty queue and contains no warm-up backlog. JPEG files
-are read once before each
-phase, so all decodes come from the page cache.
+as possible, giving throughput and energy per image. \emph{Streaming}:
+frames become available at a fixed 15, 30 or 60\,fps over the first
+1,000 val2017 images. Frame latency (\cref{tab:measure}) includes any
+queueing when the pipeline cannot keep up. The median (p50) and the p95 are reported; with
+1,000-frame streams the p99 estimate rests on ten samples, and p95 is
+the highest quantile considered stable at this size. In both workloads
+the first 20 images are a warm-up and are excluded. In streaming runs
+the arrival schedule is re-anchored at the end of the warm-up, so the
+timed window starts with an empty queue. JPEG files are read once
+before each phase, so all decodes come from the page cache.
 
 \subsection{Measurement boundaries}
 
 \begin{table}[t]
 \centering
-\caption{Measurement boundaries used throughout. Terms are distinct
-quantities: they differ in what host work and queueing they span, and
-we never equate them.}
+\caption{Measurement boundaries used throughout. The terms differ in the
+host work and queueing they span and are never equated.}
 \label{tab:measure}
 \small
 \footnotesize
@@ -182,64 +182,78 @@ Energy per image & $\int P\,dt$ over window $\div$ timed images \\
 \end{tabular}
 \end{table}
 
-Several time quantities recur, and they are not interchangeable;
-\cref{tab:measure} fixes their boundaries. The model's $G$
+\Cref{tab:measure} fixes the boundaries of the recurring time
+quantities. The model's $G$
 (\cref{sec:sysmodel}) is the device-side kernel cost, measured as
 \emph{GPU compute} in the engine sweep and as \emph{enqueue-to-done}
-inside our pipelines; on this unified-memory board the two differ only
-by the launch and copy path, 0.1--0.4\,ms at the top clock (4.25\,ms
+inside the pipelines. On this unified-memory board the two differ only
+by the launch and copy path: 0.1--0.4\,ms at the top clock (4.25\,ms
 device-side versus 4.33--4.65\,ms enqueue-to-done for the same locked
-engine), and at low clocks the launch path itself stretches
+engine). At low clocks the launch path itself stretches
 (\cref{sec:sched}). The $M$ term of \cref{sec:sysmodel} is host work
-outside $G$ on the pipeline's critical path; it never double-counts
-waiting that is already inside an enqueue-to-done span.
+outside $G$ on the pipeline's critical path and never double-counts
+waiting already inside an enqueue-to-done span.
 
 \subsection{Power, clock and thermal measurement}
 
 A separate process samples \texttt{VDD\_IN} voltage and current, the GPU
 \texttt{devfreq} clock, the highest CPU core clock and the junction
-temperature (\texttt{tj-thermal}) at 20\,Hz. Each run records its timed
-window in wall-clock time. Energy is the trapezoidal integral of power
-over that window, and energy per image divides it by the number of timed
-images. \texttt{VDD\_IN} is the module's main input rail, measured by
-the module's INA3221 monitor; carrier-board loads (fan, USB
-peripherals, display) sit on other rails and are excluded. We measured
-idle power over 60\,s windows twice for
-each clock policy (\cref{sec:ladder}). Unless stated otherwise, the GPU clocks we report are arithmetic means of the samples; for the model of \cref{eq:gf} we use the harmonic mean. To check that the sampler does not perturb what it measures, we ran the sequential and the full pipeline twice each with and without the power sampler process (first 2,000 val2017 images; a lighter logger of GPU load and clocks ran in both cases). Mean throughput differed by less than 0.2\% (40.2 versus 40.2 and 209.7 versus 209.4 images/s), well within run-to-run variation.
+temperature (\texttt{tj-thermal}) at 20\,Hz. Energy is the trapezoidal
+integral of power over each run's wall-clock timed window.
+\texttt{VDD\_IN} is the module's main input rail (INA3221 monitor);
+carrier-board loads (fan, USB peripherals, display) sit on other rails
+and are excluded. Idle power was measured twice per clock policy over
+60\,s windows (\cref{sec:ladder}). Unless stated otherwise, reported GPU
+clocks are arithmetic means of the samples; \cref{eq:gf} uses the
+harmonic mean. To check sampler overhead, the sequential and full
+pipelines were each run twice with and without the power sampler on the
+first 2,000 val2017 images, with a lighter GPU load and clock logger
+running in both cases. Mean throughput differed by less than 0.2\%
+(40.2 versus 40.2 and 209.7 versus 209.4 images/s), well within
+run-to-run variation.
 
 \subsection{Accuracy protocol and data hygiene}
 
 Accuracy is official \texttt{pycocotools} COCOeval (bbox, maxDets 100)
 on all 5,000 COCO val2017 images~\cite{lin2014coco}, reported as AP
 (IoU 0.50:0.95), AP$_{50}$ (IoU 0.50) where noted, and AP$_S$ (small
-objects). Every prediction file is
-hashed. All pipelines that differ only in scheduling produce
-byte-identical predictions in every repeat and under both clock
-policies, so for them accuracy is held exactly constant. Every development decision (compression screening, router fitting, router threshold) used two disjoint subsets of COCO train2017: a 1,024-image development split and an independent, hash-verified 1,024-image verification split. Because the pretrained checkpoint was itself trained on train2017, these splits are not unseen by the base model; they are held out only from our own fitting and selection, and their absolute AP is optimistic. We use them only for relative comparisons between variants. val2017 was used only for the measurements in this paper.
+objects). Every prediction file is hashed. Pipelines that differ only
+in scheduling produce byte-identical predictions in every repeat and
+under both clock policies, so their accuracy is exactly constant. Every
+development decision (compression screening, router fitting, router
+threshold) used two disjoint 1,024-image subsets of COCO train2017: a
+development split and an independent, hash-verified verification
+split. The pretrained checkpoint was itself trained on train2017, so
+these splits are not unseen by the base model; they are held out only
+from this paper's fitting and selection, their absolute AP is
+optimistic, and they serve only for relative comparisons between
+variants. val2017 was used only for the measurements in this paper.
 
 \subsection{Use of AI assistance in the measurement process}
 \label{sec:aiassist}
 
-As declared in the back matter, an AI coding agent (Factory Droid)
-took part in the measurement campaigns. Concretely, the agent executed
-the campaign scripts on the boards over SSH, monitored runs for
-completion, transferred logs and traces, and drafted the aggregation
-and plotting code that turns raw traces into tables and figures. The
-authors designed every experiment, protocol and comparison, reviewed
-every script before it ran, and made every analysis decision. No
-reported number rests on the agent's own summaries: prediction files
-are hash-verified across runs, and every table and figure is
-regenerated from the archived raw traces by the published aggregation
-scripts (\cref{sec:data}).
+An AI coding agent (Factory Droid) ran the campaign scripts on the
+boards, transferred the traces and drafted the aggregation and
+plotting code. All experiments, protocols and analysis decisions were
+made by the authors, and every script was reviewed before it ran. All
+tables and figures are regenerated from the archived raw traces by the
+published scripts (\cref{sec:data}).
 
 \subsection{Repetitions and statistics}
 
 Each backlog configuration on YOLO26n is repeated three times per clock
 policy. Resolution, generality, streaming and scheduling-flag
-experiments are repeated twice. Locked-clock generality runs are repeated once. Later sessions added follow-up experiments with the same software and the same protocol: driver-reported GPU load per pipeline (one run each), a lock-then-release test of the governor, a readback verification that \texttt{jetson\_clocks} holds the memory clock under load, sampler overhead, a sweep over the number of decode workers, utilization clamping on the sequential pipeline and on the prefetch and full pipelines under blocking synchronization (two runs each), a GIL switch-interval control on the full two-worker pipeline under locked clocks (two runs each), a clocked repeat of the stage breakdown, a minimum-frequency CPU clamp test (two runs), a float-engine zero-gap \texttt{trtexec} benchmark (two runs), and a fixed-frequency GPU sweep (three 15\,s runs per devfreq step, only the GPU domain pinned, plus two control runs with all clocks unlocked; the memory clock was logged at ${\approx}4$\,Hz in both). In these runs a logger additionally recorded the driver's GPU load, the GPU clock and the clock of CPUs 0--3 at 20\,Hz. The order of configurations is rotated between repeats,
-with a 10\,s pause between runs, and no other GPU work runs during a
-measurement. We report means and full ranges (minimum to maximum)
+experiments are repeated twice, and locked-clock generality runs once.
+Follow-up experiments from later sessions used the same software and
+protocol. Driver-reported GPU load was logged in one
+run per pipeline. The utilization-clamping, GIL switch-interval,
+minimum-frequency CPU clamp and float-engine zero-gap \texttt{trtexec}
+cells have two runs each, and the fixed-frequency sweep has three 15\,s
+runs per devfreq step (\cref{sec:diagnosis}). These runs also logged
+GPU load, GPU clock and the clock of CPUs 0--3 at 20\,Hz.
+Configuration order is rotated between repeats, with a 10\,s pause
+between runs, and no other GPU work runs during a measurement. Means and full ranges (minimum to maximum) are reported
 rather than confidence intervals, because two or three repeats are too
 few for a meaningful interval. Run-to-run ranges are small (median 0.8\%
-of the mean for backlog throughput). For the held-out router test we use a
+of the mean for backlog throughput). The held-out router test uses a
 paired image bootstrap.

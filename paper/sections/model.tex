@@ -4,22 +4,21 @@
 \subsection{Compression screening and a resolution router: negative results}
 \label{sec:compression}
 
-Before the pipeline study, we spent most of our effort on the model:
+Before the pipeline study, most of the effort went into the model:
 L1 and gradient-based channel pruning, mixed-precision QAT,
 distillation, and a per-image router that chooses between a 512 and a
 640 engine from pre-inference statistics. Under a common short
-recovery budget (1,024 development images, five epochs, one seed) none
-of the compressed variants reduced compiled engine time at acceptable
-accuracy, and the router, which looked favorable on its fitting split,
-lost AP and small-object recall on an independent hash-verified
-verification split, so we rejected it. \Cref{app:compression} reports
+recovery budget (1,024 development images, five epochs, one seed),
+none of the compressed variants reduced compiled engine time at
+acceptable accuracy. The router looked favorable on its fitting split
+but lost AP and small-object recall on an independent hash-verified
+verification split, so it was rejected. \Cref{app:compression} reports
 both campaigns in full. These results do not show that compression
-cannot work. They show something narrower: for a 2.6\,M-parameter
-NMS-free detector on this device and budget, the achievable
-engine-time savings are a small fraction of the 3$\times$ governor
-effect of \cref{sec:diagnosis} --- which is why the rest of this
-section varies resolution and model size while holding the
-optimization budget fixed.
+cannot work. They show that, for a 2.6\,M-parameter NMS-free detector
+on this device and budget, the achievable engine-time savings are a
+small fraction of the 3$\times$ governor effect of
+\cref{sec:diagnosis}. The rest of this section therefore varies
+resolution and model size while holding the optimization budget fixed.
 
 \subsection{The value of a lower input resolution depends on the schedule}
 \label{sec:resolution}
@@ -36,8 +35,12 @@ Once the pipeline is fixed, model-level savings matter much less than
 the engine benchmark suggests. A 2.8-point AP sacrifice for a lower
 resolution yields 27\% more throughput in a naive pipeline but only
 2--4\% in an optimized one (6--10\% with cyclic GC disabled), plus lower
-energy on a backlog. Our
-compression variants did not reduce compiled engine time at
-acceptable accuracy within the budget screened.
-The router saved at most one eleventh of what scheduling saved, and it failed held-out verification. Whether the schedule effects carry over to other detectors and other accelerators is \RQ{5} (\cref{sec:crossplatform}); within this section, YOLOv10n and YOLO26s show speedups of $5.6$--$6.9\times$ over the Ultralytics predictor, and for YOLO26s, whose engine is $1.6\times$ slower than YOLO26n's, the pipeline effect is large enough that the choice of pipeline matters more for throughput than the choice between the two model sizes.
-
+energy on a backlog. The screened compression variants did not reduce
+compiled engine time at acceptable accuracy within the budget. The
+router saved at most one eleventh of what scheduling saved, and it
+failed held-out verification. Whether the schedule effects carry over
+to other detectors and accelerators is \RQ{5} (\cref{sec:crossplatform}).
+Within this section, YOLOv10n and YOLO26s show speedups of
+$5.6$--$6.9\times$ over the Ultralytics predictor. For YOLO26s, whose
+engine is $1.6\times$ slower than YOLO26n's, the choice of pipeline
+matters more for throughput than the choice between the two model sizes.

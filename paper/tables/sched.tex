@@ -4,8 +4,8 @@
 2,000 val2017 images, default governors, mean of two runs, uint8 engine).
 ``Enq.$\to$done'' is the median enqueue-to-completion wall time of one
 inference (\cref{tab:measure}); CPU MHz is
-the mean of the fastest core's sampled clock --- not necessarily the
-core that runs the feeder thread. Run-to-run throughput spread exceeds 3\% only in the two sleeping-wait stream cells (8.6\% and 3.5\%, clock wandering between repeats); all other cells are within 3\%, and energy-per-image spread is below 1.3\% throughout.}
+the mean sampled clock of the fastest core, which is not necessarily the
+core that runs the feeder thread. Run-to-run throughput spread exceeds 3\% only in the two sleeping-wait stream cells (8.6\% and 3.5\%, from clock wandering between repeats). Energy-per-image spread is below 1.3\% throughout.}
 \label{tab:sched}
 \small
 \setlength{\tabcolsep}{2.4pt}

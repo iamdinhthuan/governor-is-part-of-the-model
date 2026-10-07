@@ -4,38 +4,45 @@
 \subsection{Implications for benchmarking}
 
 A back-to-back engine benchmark measures the GPU at a clock that a
-sequential application never reaches on this device. Engine-level
-speedups therefore answer a different question from the one a
-deployment asks. The gap is not a constant factor. It depends on the
-schedule (\cref{tab:ladder}), the arrival rate (\cref{tab:stream}) and
+sequential application never reaches on this device, so engine-level
+speedups answer a different question from the one a deployment asks.
+The gap is not a constant factor; it depends on the schedule (\cref{tab:ladder}), the arrival rate (\cref{tab:stream}) and
 the model's own duty cycle (YOLO26n versus YOLO26s in
-\cref{tab:dvfs}). In our experiments it is not even monotone in the
-arrival rate: the median latency of the uint8 and float sequential pipelines is higher at 15\,fps than at 30\,fps, and their CPU time per frame is higher as well, which points to a lower CPU clock during longer idle gaps (\cref{sec:sched}).
-We therefore suggest that efficiency claims for edge detectors include
-at least: (i)~an end-to-end decode-to-detections measurement, (ii)~the
-GPU and CPU governors and the power mode, (iii)~the GPU and CPU clocks
-logged during the measurement, (iv)~how the harness stores results, and
-(v)~the workload scenario (backlog, fixed-rate
-stream or single frame), in the spirit of the MLPerf
-scenarios~\cite{reddi2020mlperf}. Locking clocks is a useful diagnostic.
-It is not a neutral benchmarking choice, because it removes exactly
+\cref{tab:dvfs}). In these experiments it is not even monotone in the
+arrival rate. The uint8 and float sequential pipelines have higher
+median latency and higher CPU time per frame at 15\,fps than at
+30\,fps, which points to a lower CPU clock during longer idle gaps
+(\cref{sec:sched}).
+This paper therefore suggests that efficiency claims for edge detectors
+report at least: (i)~an end-to-end decode-to-detections measurement,
+(ii)~the GPU and CPU governors and the power mode, (iii)~the GPU and
+CPU clocks logged during the measurement, (iv)~how the harness stores
+results, and (v)~the workload scenario (backlog, fixed-rate stream or
+single frame), in the spirit of the MLPerf
+scenarios~\cite{reddi2020mlperf}. Locking clocks is a useful
+diagnostic, but not a neutral benchmarking choice: it removes exactly
 the interactions that dominate behavior under the stock governors a
-device ships with. Under locked clocks
-the synchronization call looks irrelevant on the sequential and
-prefetch schedules, while under the default
-governors it costs a fifth of the throughput; and on the two-worker
+device ships with. Under locked clocks the synchronization call looks
+irrelevant on the sequential and prefetch schedules, while under the
+default governors it costs a fifth of the throughput. On the two-worker
 schedule only the synchronization boundary matters (24\% for stream
-synchronization), identically in both regimes (\cref{sec:sched}). Locking also raises idle
-power by 1.9\,W, which at camera rates costs more energy than any
-pipeline choice saves (\cref{sec:stream}).
+synchronization), identically in both regimes (\cref{sec:sched}).
+Locking also raises idle power by 1.9\,W, which at camera rates costs
+more energy than any pipeline choice saves (\cref{sec:stream}).
 
 \subsection{Guidelines for practitioners}
 
 The ordering that worked on this platform was:
 \begin{enumerate}
 \item Take host stages off the GPU's critical path first (decode
-  prefetch, overlapped post-processing), and choose a wait that does not let the CPU governor lower the host's
-  clock (a spinning wait, or a per-task utilization clamp, which needed no root privileges on our system and costs less energy; \cref{sec:sched}). Use the clamp when a sleeping wait induces frequency collapse; once the pipeline keeps the host busy, the wait policy no longer matters, but the synchronization boundary does --- synchronize on per-frame events, not the whole stream, in an enqueue-ahead loop (\cref{tab:uclamp2}).
+  prefetch, overlapped post-processing). Choose a wait that does not
+  let the CPU governor lower the host's clock: a spinning wait or, where
+  a sleeping wait induces frequency collapse, a per-task utilization
+  clamp, which needed no root privileges on the test system and costs
+  less energy (\cref{sec:sched}). Once the pipeline
+  keeps the host busy, the wait policy no longer matters, but the
+  synchronization boundary does. In an enqueue-ahead loop, synchronize
+  on per-frame events, not on the whole stream (\cref{tab:uclamp2}).
 \item Move preprocessing into the engine once the CPU becomes the
   bottleneck. Its value grows from 18\% to $2.4\times$ as the schedule
   improves.
@@ -44,35 +51,41 @@ The ordering that worked on this platform was:
   variant when frames arrive at camera rates and latency matters. Do
   not lock clocks for a camera application that runs below capacity.
 \item Only then evaluate model-level savings (resolution, pruning,
-  quantization), and evaluate them in the optimized pipeline, with
-  application-level metrics.
+  quantization), in the optimized pipeline and with application-level
+  metrics.
 \end{enumerate}
-Step 4 matters because the pipeline effect is larger than the model effect. In our data the full YOLO26s pipeline under default governors is faster and more accurate than the Ultralytics YOLO26n predictor with locked clocks (\cref{tab:generality}). Model sizes should be compared within the same, optimized pipeline.
+Step 4 matters because the pipeline effect is larger than the model
+effect. In these measurements, the full YOLO26s pipeline under default
+governors is faster and more accurate than the Ultralytics YOLO26n
+predictor with locked clocks (\cref{tab:generality}). Model sizes
+should be compared within the same, optimized pipeline.
 
 \subsection{Why compression is not useless}
 
 The negative compression results are specific to a 2.6\,M-parameter
 detector whose compiled engine takes about 4\,ms, on a device whose
 host stages cost more than the engine at full clock. For larger
-models, where the engine is the bottleneck even in an optimized
-pipeline (YOLO26s reaches 95\% of its back-to-back engine rate),
-reducing engine work translates directly into throughput, and
-compression regains its usual role. Our results argue for evaluating
-compression in the regime where it will be deployed, not for
-abandoning it.
+models whose engine is the bottleneck even in an optimized pipeline
+(YOLO26s reaches 95\% of its back-to-back engine rate), reducing engine
+work translates directly into throughput, and compression regains its
+usual role. The results argue for evaluating compression in the regime
+where it will be deployed, not for abandoning it.
 
 \subsection{Relation to frequency-control research}
 
 DVFS research on edge inference usually controls the frequency
-directly~\cite{kim2021ztt,han2025dvfs,zhang2026sparsedvfs}. Our
-results are complementary. With the stock governor left in place, the
-application's own schedule determines the operating point, and a
-well-scheduled pipeline lets the stock governor choose the top clock on
-its own. A governor-aware design could go further. For example, at a
-known frame rate it could deliberately run at the lowest clock that
-meets a latency target. The 60\,fps streaming results show the
-potential: the governor ran the optimized pipelines at 405--430\,MHz,
-and their marginal energy per frame fell below the backlog value. Our
-CPU results add a second dimension. The CPU and GPU governors act
-independently, but through the host pipeline the CPU clock sets the
-GPU's duty cycle and therefore its clock (\cref{sec:sched}). A coordinated policy would have to treat the two as one control problem. Utilization clamping is a first, coarse step in this direction: it lets the application tell the CPU governor that its sleeping thread sits on the critical path of the GPU.
+directly~\cite{kim2021ztt,han2025dvfs,zhang2026sparsedvfs}. The
+present results are complementary: with the stock governor left in
+place, the application's own schedule determines the operating point,
+and a well-scheduled pipeline lets the governor choose the top clock on
+its own. A governor-aware design could go further, for example by
+deliberately running at the lowest clock that meets a latency target at
+a known frame rate. The 60\,fps streaming results show the potential: the governor ran the optimized pipelines at
+405--430\,MHz, and their marginal energy per frame fell below the
+backlog value. The CPU results add a second dimension: the CPU and GPU
+governors act independently, but through the host pipeline the CPU
+clock sets the GPU's duty cycle and therefore its clock
+(\cref{sec:sched}). A coordinated policy would have to treat the two as
+one control problem. Utilization clamping is a first, coarse step in
+this direction: it lets the application tell the CPU governor that its
+sleeping thread is on the GPU's critical path.

@@ -2,11 +2,11 @@
 \label{app:compression}
 \suppressfloats[t]
 
-Before the pipeline study, we spent most of our effort on the model.
-\Cref{tab:compression} summarizes the screening. All of it was done on
-a 1,024-image development split of COCO train2017, disjoint from
-val2017, with official COCOeval. Each method was given the same short
-recovery budget: 1,024 training images, five epochs and one seed.
+Before the pipeline study, most of the effort went into the model.
+\Cref{tab:compression} summarizes the screening, all of which used a
+1,024-image development split of COCO train2017, disjoint from val2017,
+with official COCOeval. Each method received the same short recovery
+budget: 1,024 training images, five epochs and one seed.
 
 \begin{table}[b]
 \centering
@@ -41,87 +41,80 @@ Mixed QAT & 0.4593 & -- & 5.00 \\
 \end{table}
 
 Channel pruning removed 25\% of the output channels of four backbone
-convolutions, 5.6\% of the parameters. Our object-risk criterion
-scores channels by gradient-weighted foreground activations and a
-fake-INT8 perturbation proxy, and it kept 2.7 AP points more than L1
-magnitude pruning at the same budget. Both pruned models still lost 6.8--9.5
-AP points. Neither was faster after compilation, because the pruned
-early convolutions are not where TensorRT spends its time. Ultralytics QAT
-produced a mixed-precision engine (about half of the convolutions in
-INT8, the rest FP16/FP32 behind reformatting layers). It was slower than
-FP16 under both builder levels. Distillation from the fine-tuned teacher
-reduced AP in both pruning settings (L1: 0.369 to 0.338; object-risk:
-0.395 to 0.373 on the development split). We also pruned the parts that
-per-layer profiles showed to be expensive (P3/P4 classification-head
-channels and the attention block's feed-forward width). We found no
-stable change in engine time beyond run-to-run noise (about 6.5\,ms
-back-to-back with \texttt{opt0} builds; the table's 21.8\,ms column is
-the same engine inside a sequential application, and the difference
-between the two is the governor effect of \cref{sec:diagnosis}). These results come from a short recovery budget ---
-one seed, five epochs, \texttt{opt0} builds on one device. With
-longer training, the pruned models would likely recover more AP, and
-a full \texttt{opt3} build sweep might redistribute the engine time
-differently. They do
-not show that compression cannot work. They show something narrower:
-for a 2.6\,M-parameter NMS-free detector on this device and budget,
-the achievable engine-time savings are a small fraction of the
-3$\times$ governor effect of \cref{sec:diagnosis}.
+convolutions, or 5.6\% of the parameters. The proposed object-risk
+criterion scores channels by gradient-weighted foreground activations
+and a fake-INT8 perturbation proxy. At the same budget it kept 2.7 AP
+points more than L1 magnitude pruning, but both pruned models still lost
+6.8--9.5 AP points. Neither was faster after compilation, because
+TensorRT does not spend its time in the pruned early convolutions.
+Ultralytics QAT produced a mixed-precision engine (about half of the
+convolutions in INT8, the rest FP16/FP32 behind reformatting layers). It
+was slower than FP16 under both builder levels. Distillation from the
+fine-tuned teacher reduced AP in both pruning settings (L1: 0.369 to
+0.338; object-risk: 0.395 to 0.373 on the development split). Pruning
+the parts that per-layer profiles flagged as expensive (P3/P4
+classification-head channels and the attention block's feed-forward
+width) gave no stable change in engine time beyond run-to-run noise.
+That engine time is about 6.5\,ms back-to-back with \texttt{opt0}
+builds. The table's 21.8\,ms column is the same engine inside a
+sequential application, and the difference between the two is the
+governor effect of \cref{sec:diagnosis}. These results come from
+the short budget above, with \texttt{opt0} builds on one device. Longer
+training would likely let the pruned models recover more AP, and a full
+\texttt{opt3} build sweep might redistribute the engine time. The
+results therefore do not show that compression
+cannot work. They show that, for a 2.6\,M-parameter NMS-free detector
+on this device and budget, the achievable engine-time savings are a
+small fraction of the 3$\times$ governor effect of \cref{sec:diagnosis}.
 
 \subsection{The per-image resolution router}
 \label{app:router}
 
-We fit a logistic router on cheap pre-inference image statistics. It
-chooses a 512 or 640 engine per image, and its threshold was fixed to
+A logistic router was fitted on cheap pre-inference image statistics.
+It chooses a 512 or 640 engine per image, with its threshold fixed to
 send 20\% of images to 640. On its 512-image held-out half, it slightly
-beat a fixed 576 engine in both AP and median time. We then froze it and evaluated it once on an independent, hash-verified 1,024-image train2017 split that played no part in fitting or threshold selection (\cref{sec:setup}). Against fixed 576 it lost 0.0089 AP (0.4386 vs.\
+beat a fixed 576 engine in both AP and median time. It was then frozen
+and evaluated once on an independent, hash-verified 1,024-image
+train2017 split that played no part in fitting or threshold selection
+(\cref{sec:setup}). Against fixed 576 it lost 0.0089 AP (0.4386 vs.\
 0.4476) and 0.0147 AP$_S$, and both 512-image halves lost AP. Its
 median application time was 1.1--1.4\,ms lower across three paired
-runs (41.3--41.9 versus 42.4--43.2\,ms), but its
-95th-percentile time was not. Small-object recall at IoU 0.5 fell by
-1.55 points (paired image bootstrap 95\% interval $[-2.98, -0.19]$).
-We therefore rejected it. In the same units, the scheduling steps of
-\cref{tab:ladder} save 15--28\,ms of median per-image latency depending
-on the starting pipeline; the router's ${\approx}1.2$\,ms is at most
-one eleventh of that. The comparison is in latency rather than
-period: the router was evaluated in a sequential pipeline, so its
-saving does not compose with an overlapped schedule.
-
-\section{Streaming warm-up anchoring}
-\label{app:warmup}
-
-An earlier version of the streaming harness anchored the arrival clock
-before the harness's internal warm-up, so the first timed frames
-inherited the warm-up backlog: the Ultralytics predictor's 30\,fps p95
-read 447\,ms. With arrivals re-anchored at the warm-up boundary ---
-the numbers reported in \cref{sec:stream}, with predictions unchanged
---- the same cell's p95 is 188\,ms: more than half of that tail was
-start-up bias. We report the re-anchored numbers throughout.
+runs (41.3--41.9 versus 42.4--43.2\,ms), but its 95th-percentile time
+was not. Small-object recall at IoU 0.5 fell by 1.55 points (paired
+image bootstrap 95\% interval $[-2.98, -0.19]$). The router was
+therefore rejected. In the same units, the scheduling steps of
+\cref{tab:ladder} save 15--28\,ms of median per-image latency,
+depending on the starting pipeline. The router's ${\approx}1.2$\,ms is
+at most one eleventh of that. Latency rather than period is compared because
+the router was evaluated in a sequential pipeline, so its saving does
+not compose with an overlapped schedule.
 
 \section{QNN userspace notes}
 \label{app:qnn}
 
 Two findings about the bundled \texttt{qai-appbuilder}/QNN userspace
 (QAIRT 2.50.40 wheel on QCM6490, V68 HTP) shaped the HTP campaign.
-First, it is not safe under concurrent inference: issuing calls from
-two contexts at once wedges the DSP session after a few hundred calls
-(an empty output or a session that never returns; retries and context
-rebuilds do not recover it). We can only speak for this bundled
-userspace as shipped --- the vendor SDK advertises multi-context
-support, which we did not exercise. Our pipeline therefore holds
-exactly one context and issues every NPU call from a single thread;
-overlap comes from pipelining decode, input fill and host NMS
-\emph{around} the serialized NPU calls. Under that discipline the
-whole campaign ran without a single failed call.
+First, it is not safe under concurrent inference. Calls from
+two contexts at once wedge the DSP session after a few hundred calls,
+leaving an empty output or a session that never returns; retries and
+context rebuilds do not recover it. This applies only to the bundled
+userspace as shipped. The vendor SDK advertises multi-context support,
+which was not exercised. The pipeline therefore holds exactly one
+context and issues every NPU call from a single thread. Overlap comes
+from pipelining decode, input fill and host NMS \emph{around} the
+serialized NPU calls. Under that discipline the campaign ran
+without a failed call.
 
-Second, one harness bug is worth recording. An earlier version of the
-evaluation script passed the input buffer to the appbuilder wrapper
-unflattened, and the wrapper's reshape helper caught the resulting
-broadcast error and printed it on every call, inside the timed region
-(${\approx}1$\,ms per call at the shipped governor, more at pinned low
-clocks; predictions were unaffected --- the native call received the
-correct buffer). We fixed the call, reran the entire HTP campaign, and
-report only the corrected numbers; the fix moved the shipped-governor
-rungs by ${\approx}1$\,ms per call, the \texttt{performance} ladder by
-up to 13\% (the pinned core now spends its cycles on dispatch instead
-of printing), and the 806\,MHz probe point by 8\,ms per call, so
-it mattered most exactly where the paper looks at clock sensitivity.
+Second, an earlier version of the evaluation script contained a harness
+bug. It passed the input buffer to the appbuilder wrapper unflattened,
+and the wrapper's reshape helper caught the resulting broadcast error
+and printed it on every call, inside the timed region. This cost
+${\approx}1$\,ms per call at the shipped governor and more at pinned
+low clocks. Predictions were unaffected, because the native call
+received the correct buffer. After the call was fixed, the entire HTP
+campaign was rerun, and only the corrected numbers are reported. The
+fix moved the shipped-governor rungs by ${\approx}1$\,ms per call, the
+\texttt{performance} ladder by up to 13\% (the pinned core now spends
+its cycles on dispatch instead of printing), and the 806\,MHz probe
+point by 8\,ms per call. It therefore mattered most where the paper
+examines clock sensitivity.

@@ -75,7 +75,7 @@ Architecture).
 | Tables 13-16 (Pi ladder, Rubik CPU ladder, Rubik HTP ladder, HTP head comparison) | `results/paper/pi.json`, `rubik*.json` | `aggregate_pi.py`, `aggregate_rubik.py` |
 | Table 17 (streaming on the NPU boards) | `results/paper/pi.json`, `rubik*.json` | `aggregate_pi.py`, `aggregate_rubik.py` |
 | Table A.1 (compression screening) | `modal_*.py` runs | manual (see Appendix A) |
-| Round-5 follow-ups (EMC readback under `jetson_clocks`) | `raw/round5/` | `jetson_round5.py`, `gil_exec.py`. NOTE: the round-5 GIL control and locked full-w2 cells ran `--overlap --workers 2` without `--prefetch`, so no decode pool was created (`decode_workers: 0` in their reports) and they measured the sequential schedule in disguise; Sec. 6.3 reports this erratum and replaces those cells with round 6 |
+| Round-5 follow-ups (EMC readback under `jetson_clocks`) | `raw/round5/` | `jetson_round5.py`, `gil_exec.py`. NOTE: the round-5 GIL control and locked full-w2 cells ran `--overlap --workers 2` without `--prefetch`, so no decode pool was created (`decode_workers: 0` in their reports) and they measured the sequential schedule in disguise. They are superseded by round 6 and not used in the paper (see Errata) |
 | Round-6 follow-ups (real two-worker wait-policy arms: spinning vs `cudaEventBlockingSync` sleeping event waits, uclamp, GIL switch interval, stream-sync boundary; default and locked clocks) | `raw/round6/` | `jetson_round6.py` |
 | Fig. 1 (dvfs) | `raw/dvfs/` | `make_figures.py` |
 | Fig. 2 (operating points) | `raw/load/`, `extras.json` | `make_figures.py` |
@@ -91,6 +91,21 @@ Every run stores the SHA-256 of its prediction file
 (`predictions.sha256`); all schedule comparisons in the paper are between
 runs with byte-identical hashes. `eval_predictions.py` re-checks hashes
 and COCOeval summaries against the aggregated tables.
+
+## Errata (pre-submission revisions)
+
+- Round-5 two-worker wait-policy cells: `--overlap --workers 2` without
+  `--prefetch` creates no decode pool, so those cells (40.0-40.7 images/s
+  default, 86.3-89.3 locked) reproduced the sequential rung (40.1; 90.1
+  locked). The earlier "governor-independent 19% wait penalty of the
+  two-worker schedule" was this artifact and is retracted; the harness now
+  rejects `--workers` without `--prefetch`. Round 6 reruns every arm with
+  the decode pool active.
+- Streaming warm-up anchoring: an earlier streaming harness anchored the
+  arrival clock before its internal warm-up, so the first timed frames
+  inherited the warm-up backlog (Ultralytics predictor, 30 fps: p95 447 ms
+  versus 188 ms re-anchored, predictions unchanged). Only re-anchored
+  numbers are reported.
 
 ## Notes
 

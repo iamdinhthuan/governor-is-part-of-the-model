@@ -8,97 +8,92 @@ real-time on GPUs~\cite{zhao2024rtdetr}. YOLOv10 introduced consistent dual
 assignments so that a convolutional YOLO can be deployed with a
 one-to-one head and no NMS~\cite{wang2024yolov10}, and YOLO26 continues
 this design with an end-to-end head~\cite{jocher2026yolo26,ultralytics2026yolo26}. With NMS
-gone, the remaining host work is decode, letterbox, and a short
-top-$k$ row conversion. This makes the rest of the pipeline more visible,
-and it is why we study these models.
+gone, only decode, letterbox and a short top-$k$ row conversion remain
+on the host. This makes the rest of the pipeline more visible and is
+why these models are studied here.
 
 \textbf{Compression for edge detection.}
 Structured channel pruning~\cite{li2017pruning,fang2023depgraph},
 quantization-aware training~\cite{jacob2018quantization} and knowledge
 distillation~\cite{hinton2015distilling} are the standard tools for
 making detectors cheaper. They are usually judged by parameter count,
-FLOPs or isolated engine latency. We run these tools on the same
-deployment stack and report them in end-to-end units. Our
-negative results do not show that compression is ineffective in
-general. They show that, for a nano-scale NMS-free model on this
-device, the model is not where the time goes.
+FLOPs or isolated engine latency. Here they are run on the same
+deployment stack and reported in end-to-end units. The negative
+results do not show that compression is ineffective in general, only
+that, for a nano-scale NMS-free model on this device, the model is not
+where the time goes.
 
 \textbf{Latency prediction, DVFS and thermal control.}
 nn-Meter showed that kernel-level effects make FLOPs a poor latency
-proxy on edge devices~\cite{zhang2021nnmeter}. Tang et al.\ measured how
-GPU core and memory frequencies change the time and energy of deep
-learning workloads, and found that the effect differs across
-networks~\cite{tang2019gpudvfs}. Nabavinejad et al.\ chose batch size and
+proxy on edge devices~\cite{zhang2021nnmeter}. Tang et al.\ found that the
+effect of GPU core and memory frequencies on the time and energy of
+deep learning workloads differs across networks~\cite{tang2019gpudvfs}. Nabavinejad et al.\ chose batch size and
 GPU frequency jointly for inference under latency limits~\cite{nabavinejad2022batching}.
 Other DVFS work on mobile and edge processors learns frequency policies
 that avoid throttling~\cite{kim2021ztt}, models GPU latency under
 DVFS~\cite{han2025dvfs}, or controls frequency per operator on
-Jetson-class devices~\cite{zhang2026sparsedvfs}. SparseDVFS also
-documents, as motivation, the antagonistic effect of the stock CPU and
-GPU governors on a Jetson Orin Nano: the CPU governor down-clocks the
+Jetson-class devices~\cite{zhang2026sparsedvfs}. SparseDVFS is
+motivated by the antagonistic effect of the stock CPU and GPU governors
+on a Jetson Orin Nano: the CPU governor down-clocks the
 host during GPU-heavy phases, so the host is slow exactly when the GPU
 next requests data~\cite{zhang2026sparsedvfs}. \Cref{sec:sched}
 measures the same coupling inside a detection pipeline and traces it
-to the CUDA wait policy. Work on 3D mobile games
-showed that managing CPU and GPU frequencies jointly saves power compared
-with independent governors, because the two processors depend on each
-other's progress~\cite{pathania2014cpugpu}. Closest to our setting,
-Karzhaubayeva et al.\ characterize CNN workloads on a Jetson TX2 and
-design integrated CPU--GPU DVFS governors for them~\cite{karzhaubayeva2023cpugpu},
-Lotus manages CPU and GPU frequencies jointly for object detectors on a
-Jetson Orin Nano to stabilize latency under thermal
-variation~\cite{gong2024lotus}, and Kang shows that latency estimators
-for deadline-aware governors on Jetson Orin must condition on the memory
-clock~\cite{kang2026emc}. All of these works set
-frequencies, or batch sizes, from outside the application --- they design
-or evaluate frequency-control policies. We leave the
-stock governors in place and ask how an application's duty cycle
-interacts with them: the schedule changes the operating state the stock
-governors observe, and thereby the measured cost of an otherwise fixed
-engine. We find a similar CPU--GPU governor coupling in a
-detection pipeline, and we test one standard kernel mechanism, utilization
-clamping~\cite{linux2024uclamp}, as a remedy that needed no root privileges on our system.
+to the CUDA wait policy. Work on 3D mobile games showed that joint
+CPU and GPU frequency management saves power over independent
+governors, because the two processors depend on each other's
+progress~\cite{pathania2014cpugpu}. Closest to the present
+setting, Karzhaubayeva et al.\ characterize CNN workloads on a Jetson
+TX2 and design integrated CPU--GPU DVFS governors for
+them~\cite{karzhaubayeva2023cpugpu}. Lotus manages CPU and GPU
+frequencies jointly for object detectors on a Jetson Orin Nano to
+stabilize latency under thermal variation~\cite{gong2024lotus}. Kang
+shows that latency estimators for deadline-aware governors on Jetson
+Orin must condition on the memory clock~\cite{kang2026emc}. All of
+these works design or evaluate frequency-control policies that set
+frequencies, or batch sizes, from outside the application. This work
+instead keeps the stock governors and asks how an application's duty
+cycle interacts with them. Utilization clamping~\cite{linux2024uclamp}, a standard kernel
+mechanism, is tested as a remedy for the CPU--GPU coupling; it needed
+no root privileges on the test system.
 
 \textbf{Characterization of edge inference.}
 Mittal surveyed optimized deep learning on Jetson devices, covering
 precision, framework and power-mode choices~\cite{mittal2019jetson}.
 Hadidi et al.\ compared frameworks and devices for edge inference and
-reported that, for the same model, the choice of framework changes
-inference time and energy considerably~\cite{hadidi2019edge}. These studies
-measure the model, or the framework that runs it. We measure the
-application around it: we hold the engine fixed and change only host
-code and governor settings.
+found that, for the same model, the framework changes inference time
+and energy considerably~\cite{hadidi2019edge}. These studies
+measure the model or its framework. This work holds the engine fixed
+and changes only host code and governor settings.
 
 \textbf{End-to-end costs outside the model.}
 The ``AI tax'' study showed that pre- and post-processing can dominate
 accelerated AI applications~\cite{richins2020aitax}. On Jetson, JPEG
 decode and preprocessing have been offloaded to dedicated
-units~\cite{chen2026nvjpeg}, training pipelines have been characterized
-for I/O pipelining and power modes~\cite{prashanthi2023jetson}, and the
-latency distribution of a YOLO pipeline on Jetson Orin NX has been
-modeled stage by stage as a function of image resolution~\cite{zhang2026resolution}.
+units~\cite{chen2026nvjpeg}, and training pipelines have been
+characterized for I/O pipelining and power modes~\cite{prashanthi2023jetson}.
+The latency distribution of a YOLO pipeline on Jetson Orin NX has also
+been modeled stage by stage as a function of image
+resolution~\cite{zhang2026resolution}.
 MLPerf Inference standardizes measurement scenarios, separating offline
 throughput from server and single-stream latency~\cite{reddi2020mlperf}.
 For autonomous-driving detection, R-TOD analyzes and minimizes the
-end-to-end delay from frame exposure to reported detections by
-restructuring capture and pipelining (on-demand capture, zero-slack and
+end-to-end delay from frame exposure to reported detections. It
+restructures capture and pipelining (on-demand capture, zero-slack and
 contention-free pipelines) without changing the
-network~\cite{jang2020rtod}; our arrival-aware variant
-(\cref{sec:stream}) is a simple member of the same family, and we
-measure its interaction with the stock governors and the idle floor
-rather than worst-case delay. We
-do not claim that pipelining or preprocessing bottlenecks are new. What we
-add is a measured account, on one device and stack, of how the
-governor's response to the application duty cycle changes the
-apparent cost of the \emph{model}. We also show how this reorders
-deployment decisions such as compression and resolution.
+network~\cite{jang2020rtod}. The arrival-aware variant used here
+(\cref{sec:stream}) belongs to the same family; this work measures its
+interaction with the stock governors and the idle floor rather than
+worst-case delay. What this work adds is a measured account, on one
+device and stack, of how the governor's response to the application
+duty cycle changes the apparent cost of the \emph{model}, and of how
+this reorders deployment decisions such as compression and resolution.
 
 \textbf{Adaptive resolution.}
 Choosing input scale per image or frame can save compute in
-detection~\cite{chin2019adascale,zhu2021drnet}. Our frozen pre-inference
-router is a simple member of this family. We report it because it
-failed held-out verification, and because its expected saving is smaller
-than the pipeline effects we measure.
+detection~\cite{chin2019adascale,zhu2021drnet}. The frozen
+pre-inference router used here belongs to this family. It is reported
+because it failed held-out verification and because its
+expected saving is smaller than the measured pipeline effects.
 
 \begin{table}[t]
 \centering
@@ -134,8 +129,8 @@ This work & detection, 3 boards & stock${+}$ucl. & yes & yes & yes \\
 \end{tabular}
 \end{table}
 
-\Cref{tab:related} summarizes the positioning. The gap we fill is not
-pipelining, preprocessing or DVFS per se, but the interaction with the
-\emph{stock} governors under the application's own schedule and arrival
-process, with accuracy held exactly constant so that the timing effects
-are attributable.
+\Cref{tab:related} summarizes the positioning. No novelty is claimed
+for pipelining, preprocessing or DVFS per se. The gap addressed is the
+interaction with the \emph{stock} governors under the application's
+own schedule and arrival process, with accuracy held exactly constant
+so that the timing effects are attributable.

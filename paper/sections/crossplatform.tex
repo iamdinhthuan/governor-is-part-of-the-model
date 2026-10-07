@@ -1,28 +1,23 @@
 \section{RQ5: Cross-platform replication}
 \label{sec:crossplatform}
 
-The Jetson study above traces the in-app cost to one mechanism: an
-accelerator governor that reacts to the duty cycle the host pipeline
-creates, coupled to a CPU governor that reacts to how the host waits.
-How much of this is specific to that one board? We repeated the core
-experiments on two boards with different accelerator architectures
-(\cref{tab:boards}): a Raspberry Pi~5 whose Hailo-8 is a fixed-function
-INT8 NPU with on-chip NMS and no user-visible frequency control, and a
-Rubik Pi~3 (Qualcomm QCM6490), which we measure twice: on its CPU under
-a three-cluster \texttt{schedutil} DVFS, and on its Hexagon HTP NPU
-through a separately obtained QNN runtime. On both boards we kept the
-protocol of
-\cref{sec:setup}: official COCOeval on val2017 (all 5,000 images for
-accuracy; the ladder uses the first 1,000 on the slower Rubik), the
-same letterbox geometry and row conversion, hashed predictions, a
-rotated two-repeat campaign, and clock, thermal and (where available)
-power logging at 20\,Hz on the Jetson; the Pi's PMIC sustains 10\,Hz
-and the Rubik sampler 13--18\,Hz (clocks and thermals only, no power,
-\cref{sec:setup}). Two phases deviate from that template, and
-we flag them where they appear: the pinned-frequency probes are
-single runs per frequency, and the HTP streaming phase assigns the
-two rotated repeats one per governor, so each HTP streaming cell is
-a single run.
+The Jetson study traces the in-app cost to an accelerator governor
+that reacts to the host pipeline's duty cycle, coupled to a CPU
+governor that reacts to how the host waits. To test whether this is
+board-specific, the core experiments were repeated on two boards with
+different accelerator architectures (\cref{tab:boards}): a Raspberry
+Pi~5 with a Hailo-8, a fixed-function INT8 NPU with on-chip NMS and no
+user-visible frequency control, and a Rubik Pi~3 (Qualcomm QCM6490),
+measured on its CPU under a three-cluster \texttt{schedutil} DVFS and
+on its Hexagon HTP NPU through a separately obtained QNN runtime. Both
+follow the protocol of \cref{sec:setup}: official COCOeval on val2017
+(all 5,000 images for accuracy; the ladder uses the first 1,000 on the
+slower Rubik), the same letterbox geometry and row conversion, hashed
+predictions, and a rotated two-repeat campaign. Logs are sampled at
+20\,Hz on the Jetson, 10\,Hz on the Pi (the rate its PMIC sustains)
+and 13--18\,Hz on the Rubik, which logs clocks and thermals only. The
+pinned-frequency probes and the HTP streaming cells are single runs;
+both are flagged where they appear.
 
 \begin{table*}[t]
 \centering
@@ -48,7 +43,7 @@ Power sensor & PMIC rails, SoC side only$^{a}$ & \multicolumn{2}{l}{none usable$
 \multicolumn{4}{@{}l@{}}{\scriptsize $^{a}$Excludes the 5\,V loads: the Hailo-8, fan and USB.}\\
 \multicolumn{4}{@{}l@{}}{\scriptsize $^{b}$PyPI wheel bundling libQnnHtp + V68 skel; the board's QNN 2.46 predates the}\\
 \multicolumn{4}{@{}l@{}}{\scriptsize QAIRT 2.49.40-built context binary.}\\
-\multicolumn{4}{@{}l@{}}{\scriptsize $^{c}$The board's battery manager reports inconsistent values; we log clocks and thermals only.}
+\multicolumn{4}{@{}l@{}}{\scriptsize $^{c}$The board's battery manager reports inconsistent values; only clocks and thermals are logged.}
 \end{tabular}
 \end{table*}
 
@@ -56,60 +51,51 @@ Power sensor & PMIC rails, SoC side only$^{a}$ & \multicolumn{2}{l}{none usable$
 \label{sec:pi}
 
 The Hailo model-zoo YOLOv8n HEF offloads the whole network, including
-NMS, to the NPU; the host decodes, letterboxes into a uint8 NHWC buffer
-and converts the NMS output to COCO rows. The vendor benchmark
-(\texttt{hailortcli benchmark}) reports 431.6 images/s in throughput mode,
-under both CPU governors; the NPU clock is not user-controllable, and
-no register exposes it, so we cannot observe it directly. The per-call
-NPU time we can measure includes host-side waiting inside the runtime;
-once that share is accounted for, the residual gives no sign of a
-duty-cycle response (below). A conventional sequential application on the same HEF
-reaches 65.7\,images/s, 15\% of the benchmark. The in-app gap exists on
-this accelerator too; with no observable accelerator clock we cannot
-rule in or out an internal NPU DVFS, but the mechanism we can identify
-is host-side, and the per-call NPU time, once its host-side wait share
-is accounted for (below), gives no sign of a duty-cycle response.
+NMS, to the NPU; the host decodes, letterboxes into a uint8 NHWC
+buffer and converts the NMS output to COCO rows. The vendor benchmark
+(\texttt{hailortcli benchmark}) reports 431.6 images/s in throughput
+mode under both CPU governors, while a conventional sequential
+application on the same HEF reaches 15\% of that (\cref{tab:piladder}).
+The NPU clock is neither user-controllable nor exposed by any
+register, so an internal NPU DVFS can be neither ruled in nor ruled
+out.
 
-\Cref{tab:piladder} shows the pipeline ladder. The mechanisms transfer.
-Prefetching decode nearly doubles throughput ($1.86\times$), overlapping
-post-processing and adding a second decode worker gives another
-$1.5\times$, and a third worker adds nothing, the same saturation point
-as on the Jetson. In total the restructuring reaches $2.7\times$ the
-sequential application ($3.3\times$ with the spinning wait, see
-below), with byte-identical predictions in every rung,
-repeat and governor (sha256 prefix \texttt{455ea22b07f1}; official AP
-0.320, AP$_S$ 0.122 on all 5,000 images). The wait-policy effect also
-appears here, but with a different mechanism than on the Jetson:
-replacing the sleeping wait on the asynchronous
-inference handle with a spinning wait gains 22\% under
-\texttt{ondemand} (177.9 to 217.5\,images/s) and 29\% under
-\texttt{performance} (169.9 to 219.8\,images/s), where the CPU clock
-is pinned at 2.4\,GHz. The gain therefore cannot be mediated by the
-CPU governor; it sits inside HailoRT's wait and callback path, which
-we did not profile further. A separate governor effect exists but is
-smaller: a controlled probe (\texttt{seq} versus \texttt{seq} with a
-busy spinner) shows the governor holding 2.4\,GHz instead of
-2.2\,GHz, worth 7.7\% of throughput at 42\% more energy. The NPU time itself, measured from
-submission to completion, stays at 6.3--9.3\,ms across the whole ladder
-and does not respond to duty cycle; the wait time inside that interval
-absorbs the schedule differences. Energy per image falls 1.8$\times$
-from sequential to the best variant. We stress that these milliJoules
-cover only the SoC rails; the NPU's own draw is on the unmonitored
-5\,V input. These values therefore compare SoC-side energy only: they
-do not establish whole-system energy rankings, because the unmeasured
-Hailo-8 energy can itself move with the schedule. Within-platform
-SoC-side comparisons remain meaningful between configurations that share the
-same engine and accuracy; cross-engine energy comparisons on this
-board need module-level power measurement. Streaming at 15, 30 and
-60\,fps is consistent with the Jetson's idle-floor pattern:
-sequential and overlapped pipelines differ by 9\% in energy per frame
-at 15\,fps (102.0 versus 111.1\,mJ, SoC side) and converge at
-60\,fps (37.4 versus 36.2\,mJ). Two cautions apply: the two-repeat
-spread on the 15\,fps overlapped cell reaches 19\% (101--121\,mJ),
-so that gap is indicative rather than established, and the sequential
-pipeline already sits at the idle floor within measurement error (the
-idle reading is a single 60\,s window: $1.534$\,W $\Rightarrow$
-102.3\,mJ per frame at 15\,fps).
+The ladder mechanisms transfer (\cref{tab:piladder}). Prefetching
+decode gives $1.86\times$; overlapping post-processing with a second
+decode worker gives another $1.5\times$; a third worker adds nothing,
+as on the Jetson. The restructuring reaches $2.7\times$ the sequential
+application ($3.3\times$ with the spinning wait). Predictions are
+byte-identical in every rung, repeat and governor (sha256 prefix
+\texttt{455ea22b07f1}; official AP 0.320, AP$_S$ 0.122 on all 5,000
+images).
+
+The wait-policy effect also appears, through a different mechanism.
+Replacing the sleeping wait on the asynchronous inference handle with
+a spinning wait gains 22\% under \texttt{ondemand} and 29\% under
+\texttt{performance}. Under \texttt{performance} the CPU clock is
+pinned at 2.4\,GHz, so the CPU governor cannot mediate the gain; it
+sits inside HailoRT's wait and callback path, which was not profiled
+further. A separate, smaller governor effect exists: a controlled
+probe (\texttt{seq} versus \texttt{seq} with a busy spinner) shows the
+governor holding 2.4\,GHz instead of 2.2\,GHz, worth 7.7\% of
+throughput at 42\% more energy. The NPU time from submission to
+completion stays at 6.3--9.3\,ms across the ladder; the wait inside
+that interval absorbs the schedule differences.
+
+Energy per image falls 1.8$\times$ from sequential to the best variant.
+These figures cover only the SoC rails (\cref{tab:boards}); the
+unmeasured NPU energy can itself move with the schedule, so they do
+not establish whole-system rankings. SoC-side
+comparisons remain meaningful between configurations sharing the same
+engine and accuracy; cross-engine comparisons on this board need
+module-level power measurement. Streaming at 15, 30 and 60\,fps is
+consistent with the Jetson's idle-floor pattern
+(\cref{tab:streamreplication}): sequential and overlapped pipelines
+differ by 9\% in energy per frame at 15\,fps and converge at 60\,fps.
+The 15\,fps gap is indicative only, because its overlapped cell has a
+19\% two-repeat spread (101--121\,mJ) and the sequential pipeline
+already sits at the idle floor within measurement error (single 60\,s
+idle window: $1.534$\,W $\Rightarrow$ 102.3\,mJ per frame at 15\,fps).
 
 \begin{table}[t]
 \centering
@@ -143,109 +129,95 @@ Governor & Rung & img/s & p50 ms & SoC mJ/img & CPU MHz \\
 \end{table}
 
 Two differences from the Jetson matter. First, accuracy is not
-comparable across the boards: the HEF's on-chip NMS is compiled with a
-score threshold of 0.2, which truncates the low-score tail that COCO AP
-rewards; AP comes out at 0.320, against the 0.373 that Ultralytics
-reports for the same network at the conventional 0.001
+comparable across the boards. The HEF's on-chip NMS is compiled with a
+score threshold of 0.2, truncating the low-score tail that COCO AP
+rewards: AP is 0.320, against the 0.373 that Ultralytics reports for
+the same network at the conventional 0.001
 threshold~\cite{ultralytics2023yolov8}. The threshold explains the
-direction and plausibly most of the magnitude, but without pre-threshold
-rows we cannot rule out smaller contributions from the HEF toolchain
-itself. Because every rung produces
-byte-identical predictions, this cancels in all within-platform
-comparisons. Second, the default \texttt{ondemand} governor costs less
-here than \texttt{nvhost\_podgov} costs on the Jetson: it sits at
-2.0\,GHz even in the sequential pipeline and closes most of the gap to
-\texttt{performance} once the pipeline is overlapped (219.8 versus
-217.5\,images/s for the best rung). The Jetson's threefold governor effect
-is specific to its aggressive GPU governor; what generalizes is that
-the benchmark number describes a duty cycle the application creates,
-not a property of the accelerator. One anomaly we cannot explain from
-clocks alone: on the overlap rungs the shipped \texttt{ondemand}
-governor is 5--6\% faster than the pinned \texttt{performance}
-governor (177.9 versus 169.9\,images/s at \texttt{full\_w2}), while
-with the spinning wait the order inverts (217.5 versus 219.8).
-NPU-side power states may differ between the two settings; we did not
-pursue it.
+direction and plausibly most of the magnitude; without pre-threshold
+rows, smaller contributions from the HEF toolchain cannot be ruled
+out. Because every rung produces byte-identical predictions, this
+cancels in within-platform comparisons. Second, the default
+\texttt{ondemand} governor costs less than \texttt{nvhost\_podgov} on
+the Jetson: it sits at 2.0\,GHz even in the sequential pipeline and,
+once the pipeline is overlapped, nearly matches \texttt{performance}
+(219.8 versus 217.5\,images/s at the best rung). The Jetson's
+threefold governor effect is specific to its aggressive GPU governor;
+what generalizes is that the benchmark number describes a duty cycle
+the application creates, not a property of the accelerator. One
+anomaly is unexplained by clocks: on the overlap rungs
+\texttt{ondemand} is 5--6\% faster than \texttt{performance}, while
+with the spinning wait the order inverts (\cref{tab:piladder});
+NPU-side power states, not pursued here, may differ.
 
 \subsection{Rubik Pi 3: inference on the CPU}
 \label{sec:rubik}
 
-The Rubik Pi~3 runs the same YOLO26n ONNX graph as the Jetson float
-engine, but on the CPU (ONNX Runtime, default threads), so inference
-itself consumes the resource that the host stages and the wait policy
-also need. One structural difference from the accelerator ladders
-applies: in the overlap rungs the session call runs in each decode
-worker, so up to \texttt{max\_workers} inferences execute concurrently
-and the \emph{infer} column includes their mutual contention. The
-frequency probes of this subsection pin the run to the prime core
-(\texttt{taskset}, intra-op parallelism 1) so that a single frequency
-domain is exercised; the ladder runs use the default unpinned
-configuration. Accuracy first: on all 5,000 val2017 images the board
-reproduces the Jetson engine's AP almost exactly (0.4027 versus
-0.40257, AP$_S$ 0.1977 versus 0.19766), so the model is a fixed point
-across the two stacks. CPU inference under multithreading emits rows in a nondeterministic
-order, so the byte-level hash does not apply directly; canonicalizing
-the rows (sorting by image, category, score and box) shows the
-predictions are in fact identical: all six rungs produce the same
-143,362 canonical rows on the 1,000-image ladder subset in every
-repeat and governor (24 of 24 cells), and \texttt{seq},
-\texttt{full\_w2} and \texttt{full\_w2\_spin} give identical AP
-(0.425).
+The Rubik Pi~3 runs the Jetson float engine's YOLO26n ONNX graph on
+the CPU (ONNX Runtime, default threads), so inference competes with
+the host stages and the wait policy for the same resource. In the
+overlap rungs each decode worker runs the session call, so up to
+\texttt{max\_workers} inferences execute concurrently and the
+\emph{infer} column includes their contention. The frequency probes
+pin the run to the prime core (\texttt{taskset}, intra-op parallelism
+1) to exercise a single frequency domain; the ladder runs are
+unpinned. On all 5,000 val2017 images the board reproduces the Jetson
+engine's AP almost exactly (0.4027 versus 0.40257, AP$_S$ 0.1977
+versus 0.19766). Multithreaded inference emits rows in a
+nondeterministic order, so predictions are compared after
+canonicalization (sorting rows by image, category, score and box): all
+six rungs produce the same 143,362 canonical rows on the 1,000-image
+subset in every repeat and governor (24 of 24 cells), and
+\texttt{seq}, \texttt{full\_w2} and \texttt{full\_w2\_spin} give
+identical AP (0.425).
 
-\Cref{tab:rubikladder} shows the ladder. Every effect that dominated on
-the accelerator boards shrinks or inverts. Prefetch alone no longer
-helps ($-5$\%): the decode worker steals a core from the inference
-threads. Overlap with one worker gives the best result, but only
-$+28$\% (versus $3.3\times$ on the Pi and $6.3\times$ on the Jetson,
-both under their shipped governors),
-and it nearly triples the median latency (304 to 896\,ms)
-because the queued frame waits behind a 400\,ms inference. The
-spinning wait, worth 20--22\% on both accelerator boards, gains nothing
-here: a spinning thread competes with the inference threads for the
-same cores. The two governors differ by less than the
-thermal drift between identical repeats (3.26 versus 2.97\,images/s for
-\texttt{seq}), a picture consistent with both sitting at the thermal
-limit: the SoC reached 95.4--95.8\,$^\circ$C --- the firmware ceiling
---- in every ladder run, and a repeat
-late in the campaign is up to 17\% slower than an earlier identical
-one, a drift the Jetson never showed (median run-to-run
-range 0.8\% there). We read no hardware throttle counter on this
-board, so we attribute the drift to thermal management by its
-signature (sustained ceiling temperature plus progressive slowdown)
-rather than by direct observation.
+Every effect that dominated on the accelerator boards shrinks or
+inverts (\cref{tab:rubikladder}). Prefetch alone no longer helps
+($-5$\%), because the decode worker steals a core from inference.
+Overlap with one worker is best, but gains only $+28$\% and nearly
+triples the median latency, because the
+queued frame waits behind a 400\,ms inference. The spinning wait,
+worth 20--22\% on both accelerator boards, gains nothing, since the
+spinner competes with the inference threads for cores. The two
+governors differ by less than the drift between identical repeats,
+consistent with both sitting at the thermal limit. The SoC reached
+95.4--95.8\,$^\circ$C, the firmware ceiling, in every ladder run, and
+a late repeat is up to 17\% slower than an earlier identical one; the
+Jetson's median run-to-run range was 0.8\%. No hardware throttle
+counter was read, so the drift is attributed to thermal management by
+its signature (sustained ceiling temperature plus progressive
+slowdown), not by direct observation.
 
-What remains controllable is the clock itself. Pinning the big core's
+What remains controllable is the clock. Pinning the big core's
 frequency domain to 806, 1862 and 2707\,MHz moves the sequential
-pipeline through 1.7, 3.1 and 3.8\,images/s; inference time scales from
+pipeline through 1.7, 3.1 and 3.8\,images/s, and inference time from
 575.7 to 255.2\,ms, a $2.26\times$ ratio for a $3.36\times$ frequency
-ratio (one run per pin, and only the prime domain is pinned while the
-other two domains float, so we read this as a dose--response rather
-than a scaling law). On a CPU-inference device, frequency is a direct
-throughput control with no governor mystery: the pipeline never
-leaves the processor idle long enough to confuse \texttt{schedutil}. In the streaming
-workload (2, 5 and 10\,fps) both pipelines keep up only at 2\,fps,
-where the sequential variant again wins on latency (p50 290 versus
-356\,ms) and the big core drops to 2.3--2.5\,GHz in the idle gaps. At
-5 and 10\,fps both fall behind their arrivals and the queue grows
-linearly: within a 300-frame stream the median latency reaches 23.9
-and 39.3\,s for the sequential pipeline, while the overlapped
-pipeline's higher capacity (3.8 versus 2.8\,images/s) holds it to 8.6
-and 26.2\,s, at a permanently saturated 2.7\,GHz. (The streaming
-sequential capacity of 2.8\,images/s sits below the ladder's 3.26
-because the streaming phase ran late in the campaign, when the board
-was hottest.) No schedule rescues
-a pipeline whose capacity is below the arrival rate; on this board the
-clock, or a cheaper model, is the only lever.
+ratio. Each pin is a single run and the other two domains float, so
+this is a dose--response, not a scaling law. Frequency is a direct
+throughput control here, because the pipeline never idles the
+processor long enough to confuse \texttt{schedutil}. In streaming (2,
+5 and 10\,fps) both pipelines keep up only at 2\,fps, where the
+sequential variant again wins on latency (p50 290 versus 356\,ms) and
+the big core drops to 2.3--2.5\,GHz in the idle gaps. At 5 and
+10\,fps the queue grows linearly: within a 300-frame stream the
+sequential median latency reaches 23.9 and 39.3\,s, and the
+overlapped pipeline's higher capacity (3.8 versus 2.8\,images/s) holds
+it to 8.6 and 26.2\,s at a saturated 2.7\,GHz. The sequential capacity
+is below the ladder's 3.26 because the streaming phase ran late, when
+the board was hottest. No schedule rescues a pipeline whose capacity
+is below the arrival rate; here the clock, or a cheaper model, is the
+only lever.
 
 \begin{table}[t]
 \centering
 \caption{Pipeline ladder on the Rubik Pi 3 (CPU inference, 1,000
-val2017 images of which 980 are timed after warm-up, mean of two
-rotated repeats with the repeat range in parentheses --- two repeats
-cannot support an interval; p50 is the median per-image end-to-end latency,
-\emph{infer} the ONNX Runtime call --- in the overlap rungs the decode
-workers share the cores that inference uses, so the call itself
-lengthens; no power sensor on this board).}
+val2017 images of which 980 are timed after warm-up). Values are the
+mean of two rotated repeats with the repeat range in parentheses; two
+repeats cannot support an interval. p50 is the median per-image
+end-to-end latency and \emph{infer} the ONNX Runtime call. In the
+overlap rungs the decode workers share the cores that inference uses,
+so the call itself lengthens. No power sensor is available on this
+board.}
 \label{tab:rubikladder}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
@@ -275,189 +247,161 @@ Governor & Rung & img/s & p50 ms & infer ms \\
 \subsection{Rubik Pi 3 on its Hexagon NPU}
 \label{sec:rubikhtp}
 
-The QCM6490's intended accelerator is a Hexagon HTP (V68) NPU, which
-the CPU measurements above never touched: the board's QNN runtime
-(2.46) predates the available INT8 context binary of the same YOLO26n
-graph (built with QAIRT 2.49.40), and the newer SDK requires a vendor
-account. We closed the gap with the \texttt{qai-appbuilder} 2.50.40
-PyPI wheel, which bundles a matching \texttt{libQnnHtp} and V68 skel;
-with the DSP (digital signal processor) library path pointed at the wheel, the context runs
-unchanged. Two protocol differences follow from the context, not from
-our pipeline: it is INT8 rather than float, and it ends in the
-standard $(1{,}84{,}8400)$ head, so NMS runs on the host with the
-reference val settings (confidence ${\ge}\,0.001$, IoU $0.7$, at most
-300 detections), where the Hailo board sits at the opposite extreme
-with NMS fused into the HEF. The quantized stack scores AP $0.364$
-(AP$_S$ $0.175$) on all 5,000 images against $0.4027$ ($0.198$) for
-the float CPU stack: eleven times the throughput of the best CPU
-pipeline under the same governor (43.6 versus 4.07\,images/s under
-\texttt{performance}; $6.7\times$ under \texttt{schedutil}) for
-$3.9$ points of AP. One protocol caveat applies to that
-comparison: the context's uint8 score encoding uses a quantization
-scale of $0.01045$ (measured on the output grid), so the effective
-score floor is ${\approx}0.01$ rather than the reference $0.001$ --- the same
-mechanism we flagged for the Hailo, twenty-fold milder.
-It truncates only the far tail (on fewer than ten of the 5,000 images
-the stack
-emits no rows, all of them images whose float-stack detections score
-below $0.02$). A direct sensitivity check quantifies this mechanism alone: quantizing
-the float stack's scores to $0.01$ steps and dropping the sub-$0.01$
-tail lowers its AP from $0.4026$ to $0.3999$ ($-0.27$ points, AP$_S$
-$-0.5$), which is about 7\% of the 3.9-point gap between the two
-stacks. The check exercises only the score floor --- not the
-quantization of boxes, features or the two stacks' different error
-distributions --- so the remaining 93\% of the gap lies elsewhere:
-the score floor is one measured contributor, not a bound on the full
-INT8 gap. Within the NPU stack, predictions
-are byte-identical across every ladder rung, repeat and governor
-(sha256 prefix \texttt{09de71d67bad} on the ladder subset), and the
-accuracy run's rows for those images match row for row. Each accuracy
-row comes from a single run; COCOeval is deterministic, so a repeat
-would differ only through runtime nondeterminism.
+The QCM6490's intended accelerator is a Hexagon HTP (V68) NPU. The
+board's QNN runtime predates the available INT8 context binary of the
+same YOLO26n graph (\cref{tab:boards}), and the newer SDK requires a
+vendor account. The \texttt{qai-appbuilder} PyPI wheel bundles a
+matching \texttt{libQnnHtp} and V68 skel; with the DSP (digital signal
+processor) library path pointed at the wheel, the context runs
+unchanged. The context, not the pipeline, brings two
+protocol differences: it is INT8, and it ends in the standard
+$(1{,}84{,}8400)$ head, so NMS runs on the host with the reference val
+settings (confidence ${\ge}\,0.001$, IoU $0.7$, at most 300
+detections). It scores AP $0.364$ (AP$_S$ $0.175$) on all 5,000 images
+against $0.4027$ ($0.198$) for the float CPU stack, trading $3.9$
+points of AP for eleven times the throughput of the best CPU pipeline
+under the same governor (43.6 versus 4.07\,images/s under
+\texttt{performance}; $6.7\times$ under \texttt{schedutil}).
 
-One deployment finding precedes the measurements: the bundled
-appbuilder/QNN userspace wedged the DSP session under concurrent
-multi-context inference, so our pipeline holds exactly one context and
-issues every NPU call from a single thread; overlap comes from
-pipelining decode, input fill and host NMS \emph{around} the
-serialized NPU calls. Under that discipline the whole campaign ran
-without a single failed call. Separately, a harness bug in an early
-version of the evaluation script inflated every timed call by a
-per-call error print; we fixed it, reran the entire HTP campaign, and
-report only the corrected numbers. Both issues, and why the bug
-mattered most exactly where the paper looks at clock sensitivity, are
-detailed in \cref{app:qnn}.
+One caveat applies to that comparison. The context's uint8 score
+encoding has a quantization scale of $0.01045$ (measured on the output
+grid), so the effective score floor is ${\approx}0.01$ rather than
+$0.001$: the Hailo mechanism, twenty-fold milder. It truncates only
+the far tail; on fewer than ten of the 5,000 images the stack emits no
+rows, all of them images whose float-stack detections score below
+$0.02$. A sensitivity check quantizes the float stack's scores to
+$0.01$ steps and drops the sub-$0.01$ tail, which lowers its AP from
+$0.4026$ to $0.3999$ ($-0.27$ points, AP$_S$ $-0.5$). The score floor
+therefore explains about 7\% of the 3.9-point gap. The check covers
+only the score floor, not the quantization of boxes or features or the
+stacks' different error distributions, so it does not apportion the
+remaining gap. Within the NPU stack, predictions are byte-identical
+across every rung, repeat and governor (sha256 prefix
+\texttt{09de71d67bad} on the ladder subset), and the accuracy run's
+rows for those images match row for row. Each accuracy row is a single
+run; COCOeval is deterministic, so a repeat could differ only through
+runtime nondeterminism.
 
-\Cref{tab:rubikhtpladder} shows the ladder, and the CPU board's
-picture inverts back to the accelerator pattern. With a
-24--28\,ms NPU call, the host stages are again the tax, and the
+The bundled appbuilder/QNN userspace wedged the DSP session under
+concurrent multi-context inference, so the pipeline holds exactly one
+context and issues every NPU call from a single thread; overlap comes
+from pipelining decode, input fill and host NMS \emph{around} the
+serialized NPU calls. Under that discipline no call failed. Separately,
+an early evaluation-script bug inflated every timed call by a per-call
+error print; it was fixed, the entire HTP campaign was rerun, and only
+corrected numbers are reported. \Cref{app:qnn} details both issues and
+why the bug mattered most where clock sensitivity is examined.
+
+\Cref{tab:rubikhtpladder} shows a return to the accelerator pattern.
+With a 24--28\,ms NPU call, the host stages are again the tax, and the
 ladder recovers them: $+24$\% under \texttt{schedutil} (22.9 to
-28.5\,images/s, the spinning-wait diagnostic; the best
-non-spinning rung reaches 27.8) and $+52$\% under
-\texttt{performance} (28.8 to
-43.6\,images/s), where the best rung saturates the accelerator: its
-22.9\,ms period matches the effective per-call service time under
-load, marginally below the 24.4\,ms isolated-call median. One
-consequence is that a second decode worker does not pay off under
-\texttt{performance}: \texttt{full\_w2} is slower than
-\texttt{full\_w1} (39.9 versus 43.6\,images/s) and adds 39\,ms of p50
-latency, because NPU calls are serialized on one thread, so the extra
-worker cannot add accelerator parallelism and only lengthens the
-queue; under \texttt{schedutil} the two rungs tie (27.8 versus
-27.7\,images/s), the slowed feeder core being the binding constraint
-either way. That
-median corresponds to about 41 calls/s of back-to-back submission,
-and the best rung exceeds it (43.6\,images/s), so the isolated call
-overstates the loaded service time --- under sustained submission
-either queued calls overlap driver-side work or the loaded dispatch
-share shrinks; we cannot separate the two, and report both the
-isolated call and the saturated period. The governor,
-irrelevant on the CPU board, is here the largest single term:
-under \texttt{schedutil} the core that feeds the NPU settles at
-$0.95$--$1.0$\,GHz during the overlapped rungs and at $1.78$\,GHz in
-the sequential one --- the less host work a rung leaves on the
-critical path, the lower the clock the governor chooses --- and the
-same pipeline runs up to 57\% faster under \texttt{performance}
-(43.6 versus 27.8\,images/s on the matched \texttt{full\_w1} rung;
-44\% on the matched \texttt{full\_w2} rung, 39.9 versus
-27.7\,images/s).
-The pinned-frequency probe shows why the host clock matters so much
-for an ``NPU'' call: at 806, 1862 and 2707\,MHz the sequential
-pipeline delivers 16.7, 24.0 and 28.6\,images/s, and the measured NPU
-time itself falls from 35.8 to 24.4\,ms. The three points are
-consistent with a decomposition into a fixed ${\approx}20$\,ms NPU
-kernel plus a host-side dispatch term inversely proportional to the
-pinned core's clock (least-squares fit; the mid point sits
-$0.8$\,ms above it, so the two-term form is descriptive rather than
-exact): a large share of each
-accelerator call is remote-procedure-call (RPC) work executed on the CPU. We stress that this
-is a descriptive decomposition, not a validated model --- two
-parameters over three single-run pins leave one residual degree of
-freedom, and because the NPU exposes no observable clock or load
-register, the decomposition cannot distinguish a clock-invariant
-kernel from an accelerator DVFS whose response happens to be absorbed
-by the constant term. The governor invariance we report below is a
-hypothesis consistent with the data, not a measurement. The spinning
-wait gains nothing on this stack (38.2 versus
-39.9\,images/s under \texttt{performance}; it also shows the widest
-repeat spread of the campaign, 34.9--41.5\,images/s across the two
-repeats --- thermal drift, with the SoC climbing from 83 to
-95\,$^\circ$C, not noise): with a single serial caller there is no
-asynchronous-handle wait for the spinner to heat. As on the Hailo,
-the NPU exposes no user-visible frequency control, and within this
-decomposition the accelerator clock is not the moving part: what moves
-with the governor is the call's host-dispatch share. The sequential call
-measures 24.4\,ms under \texttt{performance} and 28.3\,ms under
-\texttt{schedutil}, while the pinned probe's kernel component
-(${\approx}20$\,ms) is governor-invariant in the fit; correspondingly, under \texttt{performance} the best
-rung issues one call every 22.9\,ms, the loaded per-call service time,
-while under the shipped governor the best rung issues one every
-35.1\,ms against a 28.3\,ms sequential call, so the accelerator idles
-about a fifth of each period even when the queue never empties. (The \emph{infer} column of
-\Cref{tab:rubikhtpladder} grows from 24.4 to ${\approx}47$\,ms in the
-overlap rungs because there the measurement spans the queue wait
-behind the single serialized NPU caller, not because the accelerator
-slows down.) Streaming behaves as the capacities predict. Under
-\texttt{schedutil} the pipeline keeps up at 15\,fps (p50 108\,ms
-overlapped, 54\,ms sequential) and queues linearly at 30 and 60\,fps
-(p50 0.8 and 5.1\,s overlapped, 2.4 and 6.7\,s sequential, within a
-480-frame stream). Under \texttt{performance} the overlapped pipeline
-sustains 30\,fps at p50 47\,ms while the sequential one (capacity
-28.8\,images/s) already falls behind (p50 0.39\,s); at 60\,fps both queue
-(p50 2.1 versus 4.7\,s). Predictions agree row for row with the
-ladder on the shared images, in both campaigns. Each streaming cell here is a single run (the two
-rotated repeats were assigned one per governor), so the governor
-contrast is paired but not replicated.
+28.5\,images/s, the spinning-wait diagnostic; the best non-spinning
+rung reaches 27.8) and $+52$\% under \texttt{performance} (28.8 to
+43.6\,images/s). Under \texttt{performance} the best rung saturates
+the accelerator: its 22.9\,ms period matches the loaded per-call
+service time, marginally below the 24.4\,ms isolated-call median. That
+median implies about 41 calls/s, which the best rung exceeds, so it
+overstates the loaded service time. Under sustained
+submission either queued calls overlap driver-side work or the loaded
+dispatch share shrinks; the two cannot be separated.
+
+Because NPU calls are serialized, a second decode worker does not pay
+off. Under \texttt{performance} \texttt{full\_w2} is slower than
+\texttt{full\_w1} and adds 39\,ms of p50 latency, since the extra
+worker only lengthens the queue; under \texttt{schedutil} the two tie,
+because the slowed feeder core binds either way. The governor,
+irrelevant on the CPU board, is the largest single term here. Under
+\texttt{schedutil} the core that feeds the NPU settles at
+$0.95$--$1.0$\,GHz in the overlapped rungs and at $1.78$\,GHz in the
+sequential one: the less host work a rung leaves on the critical path,
+the lower the clock the governor chooses. The same pipeline runs up to
+57\% faster under \texttt{performance} (43.6 versus 27.8\,images/s on
+the matched \texttt{full\_w1} rung; 44\% on the matched
+\texttt{full\_w2} rung, 39.9 versus 27.7\,images/s).
+
+The pinned-frequency probe shows why the host clock matters for an
+``NPU'' call. At 806, 1862 and 2707\,MHz the sequential pipeline
+delivers 16.7, 24.0 and 28.6\,images/s, and the measured NPU time
+falls from 35.8 to 24.4\,ms. A least-squares fit decomposes the three
+points into a fixed ${\approx}20$\,ms NPU kernel plus a host-side
+dispatch term inversely proportional to the pinned core's clock, so a
+large share of each call is remote-procedure-call (RPC) work on the
+CPU. The decomposition is descriptive, not a validated model: the mid
+point sits $0.8$\,ms above the fit, and two parameters over three
+single-run pins leave one residual degree of freedom. With no
+observable NPU clock or load register, it also cannot distinguish a
+clock-invariant kernel from an accelerator DVFS absorbed by the
+constant term. The governor invariance below is therefore a hypothesis
+consistent with the data, not a measurement.
+
+The spinning wait gains nothing here (38.2 versus 39.9\,images/s under
+\texttt{performance}): a single serial caller has no
+asynchronous-handle wait for the spinner to heat. This cell also shows
+the campaign's widest repeat spread (34.9--41.5\,images/s), which is
+thermal drift, with the SoC climbing from 83 to 95\,$^\circ$C, not
+noise. Within the decomposition, what moves with the governor is the
+call's host-dispatch share, not the accelerator clock: the sequential
+call takes 24.4\,ms under \texttt{performance} and 28.3\,ms under
+\texttt{schedutil}, while the fitted kernel is governor-invariant.
+Under the shipped governor the serialized call path at the best rung delivers one completion every 35.1\,ms, about 24\%
+slower than the 28.3\,ms sequential-call rate, even when the queue
+never empties. The \emph{infer} column rises to ${\approx}47$\,ms in
+the overlap rungs because it then includes the queue wait behind the
+serialized caller, not because the accelerator slows.
+
+Streaming behaves as the capacities predict
+(\cref{tab:streamreplication}; single runs, so the governor contrast
+is paired but not replicated). Under \texttt{schedutil} the pipeline
+keeps up at 15\,fps (p50 108\,ms overlapped, 54\,ms sequential) and
+queues linearly at 30 and 60\,fps (p50 0.8 and 5.1\,s overlapped, 2.4
+and 6.7\,s sequential). Under \texttt{performance} the overlapped
+pipeline sustains 30\,fps at p50 47\,ms, while the sequential one
+(capacity 28.8\,images/s) already falls behind (p50 0.39\,s); at
+60\,fps both queue (p50 2.1 versus 4.7\,s). Predictions agree row for
+row with the ladder on the shared images.
 
 \paragraph{Baking selection into the graph}
-The Jetson and the Rubik CPU stacks run the NMS-free $(1{,}300{,}6)$
-head with selection fused into the model (the Hailo HEF fuses its own
-NMS on-chip instead), so for completeness we also
-built an end-to-end context for the HTP with the matching QAIRT
-2.50.40 toolchain (INT8, 500 calibration images, the context binary
-generated on the board itself). One silent pitfall is worth
-recording: the exported head routes the box branch
-(range ${\approx}\,[-50,800]$) and the score branch ($[0,1]$) through
-a single concat--transpose--split, and per-tensor INT8 quantization
-gives the shared tensor one scale, which sets the score channel to
-zero at runtime. Calibration cannot fix this; graph surgery can ---
-we transpose the two branches separately and expose boxes, scores and
-classes as three output tensors, so each receives its own scale (the
-V68 HTP rejects fp16 graphs outright, so mixed precision was not an
-option). The repaired context detects correctly and is faster end to
-end, because selection moves onto the DSP and the host NMS stage
-disappears: the same descriptive decomposition puts the fixed NPU
-kernel at ${\approx}11.6$\,ms (endpoint and least-squares fits
-span 11.5--11.6\,ms, with the mid probe point $0.3$\,ms above the
-fit) against ${\approx}20$\,ms for the standard
-head, the accuracy run
-rises to 32.5\,images/s and the
-best rung to 63.2\,images/s (+45\%), and the overlapped 30\,fps stream
-cuts its p50 latency by 42\% under \texttt{performance} (27 versus
-47\,ms). It also costs accuracy: AP $0.293$ against $0.364$, with the
-loss concentrated in small objects (AP$_S$ $0.112$ versus $0.175$),
-where the in-graph INT8 box-decode chain (regression logits at
-$0.75$ per step, decoded boxes at $3.3$\,px per step) hurts most
-(\Cref{tab:rubikhtpe2e}). We therefore keep the standard head with
-host NMS as the primary HTP stack and report the fused head as a
-measured configuration comparison: on this toolchain, the
-fused-selection configuration runs 45\% faster at peak and scores 7
-AP points lower than the standard-head configuration. The comparison
-is not a clean ablation --- the two contexts come
-from different QAIRT releases (2.49.40 versus 2.50.40) and different
-calibration sets --- so the $-7$ AP is the observed difference between
-these two configurations, not an isolated cost of fusing selection.
+The Jetson and Rubik CPU stacks fuse selection into the NMS-free
+$(1{,}300{,}6)$ head, and the Hailo HEF runs NMS on-chip, so an
+end-to-end context was also built for the HTP with the matching QAIRT
+2.50.40 toolchain (INT8, 500 calibration images, context binary
+generated on the board). One silent pitfall arose: the exported head
+routes the box branch (range ${\approx}\,[-50,800]$) and the score
+branch ($[0,1]$) through a single concat--transpose--split, and
+per-tensor INT8 quantization gives the shared tensor one scale, which
+zeroes the score channel at runtime. Graph surgery, not calibration,
+fixes this: the branches are transposed separately, and boxes, scores
+and classes are exposed as three output tensors with their own
+scales. Mixed precision is not an option, because the V68 HTP rejects
+fp16 graphs outright.
+
+The repaired context detects correctly and is faster end to end,
+because selection moves onto the DSP and host NMS disappears: on this
+toolchain it runs 45\% faster at peak (\Cref{tab:rubikhtpe2e}), and
+under \texttt{performance} the overlapped 30\,fps stream cuts its p50
+latency by 42\% (27 versus 47\,ms). The same descriptive decomposition
+puts the fixed NPU kernel at ${\approx}11.6$\,ms, against
+${\approx}20$\,ms for the standard head (endpoint and least-squares
+fits span 11.5--11.6\,ms, with the mid probe point $0.3$\,ms above the
+fit). The fused head scores 7 AP points lower, with the loss
+concentrated in small objects, where the in-graph INT8 box-decode chain
+(regression logits at $0.75$ per step, decoded boxes at $3.3$\,px per
+step) hurts most. The standard head with host NMS therefore remains
+the primary HTP stack. Because the two contexts differ in QAIRT release
+and calibration set, this is a configuration comparison, not an
+isolated cost of fusing selection.
 
 \begin{table}[t]
 \centering
 \caption{Pipeline ladder on the Rubik Pi 3 with the Hexagon HTP NPU
-(INT8 context, host NMS; 1,000 val2017 images of which 980 are timed,
-mean of two rotated repeats with the repeat range in parentheses ---
-two repeats cannot support an interval; NPU calls serialized on one
-thread, see text). \emph{infer} is submission-to-completion of the
-NPU call; in the overlap rungs it spans the queue wait behind the
-single serialized caller, not pure accelerator time (the sequential
-rung gives the pure call: 24.4\,ms under \texttt{performance}).}
+(INT8 context, host NMS; 1,000 val2017 images of which 980 are timed).
+Values are the mean of two rotated repeats with the repeat range in
+parentheses; two repeats cannot support an interval. NPU calls are
+serialized on one thread (see text). \emph{infer} is
+submission-to-completion of the NPU call. In the overlap rungs it spans
+the queue wait behind the single serialized caller, not pure
+accelerator time; the sequential rung gives the pure call (24.4\,ms
+under \texttt{performance}).}
 \label{tab:rubikhtpladder}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
@@ -488,15 +432,15 @@ Governor & Rung & img/s & p50 ms & infer ms \\
 \centering
 \caption{Head configuration comparison on the Rubik HTP: the standard
 head with host NMS versus the NMS-free head fused into the INT8
-context. This is not a clean ablation --- the two contexts come from
+context. This is not a clean ablation. The two contexts come from
 different QAIRT releases (2.49.40 versus 2.50.40) and different
-calibration sets --- so the accuracy difference is a property of the
+calibration sets, so the accuracy difference is a property of the
 two configurations, not an isolated cost of fusing selection.
-Accuracy on all 5,000 val2017 images (same pipeline, serialized NPU
+Accuracy is on all 5,000 val2017 images (same pipeline, serialized NPU
 calls); throughput is the accuracy run and the best ladder rung per
 governor. Under \texttt{schedutil} both best cells are the
 spinning-wait diagnostic (best non-spinning rungs: 27.8 and 36.9
-images/s); under \texttt{performance} the fused head's spin and
+images/s). Under \texttt{performance} the fused head's spin and
 non-spin best rungs tie within run-to-run noise (63.2 versus 63.0).}
 \label{tab:rubikhtpe2e}
 \small
@@ -513,127 +457,98 @@ NMS-free, fused (3 outputs)        & 0.293 & 0.477 & 0.112 & 32.5 & 39.6 / 63.2 
 \subsection{What transfers, and what does not}
 \label{sec:transfer}
 
-Across three boards and four inference stacks the same experiment
-gives four shades of one answer. The \emph{benchmark-versus-application
-gap} appears on every stack we measured: 431.6 images/s versus
-65.7\,images/s on the Pi~5 (15\%), 4.2\,ms versus 13.2\,ms on the
-Jetson, and on the Rubik a 254\,ms inference inside a 304\,ms
-sequential loop on the CPU and, under the shipped governor, a 28\,ms
-NPU call inside a 43\,ms loop on the HTP. These four gaps are not
-all of the same kind: each compares an isolated engine or
-inference-call benchmark with a sequential application, but the content
-of the difference is stack-specific. On the Jetson it is mostly the
-governor's response to the application's duty cycle
-(\cref{sec:diagnosis}); on the Pi, where the accelerator call is
-fixed-cost, it is the host work around that call; on the HTP it
-additionally contains the host-dispatch share of each accelerator
-call and that share's response to the CPU governor; on the Rubik CPU
-it is bounded by thermal saturation. The \emph{host-pipeline ladder} helps on all four stacks,
-but its size depends on what else moves with the schedule (best rung
-versus sequential, each under the board's shipped governor):
-$6.3\times$ on the Jetson against the naive sequential rung (float
-input, stream synchronization; $4.3$--$5.3\times$ against the stronger
-sequential variants of \cref{tab:ladder}; the $2.4\times$ headline of
-\cref{sec:intro} uses the locked-clock baseline), where overlapping
-also lifts the GPU out
-of its DVFS floor, so the ladder undoes both the host-stage tax and
-the clock collapse; $3.3\times$ on the Pi, whose sequential pipeline is
-the most host-bound of the four; $1.3\times$ on the Rubik CPU; and
-only $1.2\times$ on the HTP under the shipped governor, where the
-CPU governor settles the core that feeds the DSP near 1\,GHz as soon
-as the pipeline overlaps --- fixing the governor first re-opens the
-ladder to $1.5\times$ (\texttt{performance} column of
-\Cref{tab:rubikhtpladder}). The \emph{wait-policy effect} appears on
-both asynchronous-handle accelerators but at different rungs and through
-different mechanisms. On the Jetson it is a property of the schedules
-that actually wait: replacing the sleeping wait gains 20--25\% on the
-sequential and prefetch rungs, mediated by the CPU governor (the
-busy-loop and \texttt{uclamp} experiments of \cref{sec:sched}), and
-nothing on the full two-worker pipeline, whose host never goes idle on
-the critical path. On the Pi the same swap gains 22--29\% on the
-\emph{best} rung (\texttt{full\_w2}), and it persists at a pinned CPU
-clock, so it lives in the runtime's wait path rather than the
-governor. It vanishes where no such wait exists: when
-the CPU itself computes, because the spinner steals cycles from the
-inference it waits for, and on the HTP stack, where the single serial
-caller waits on a bounded queue rather than an async handle. The
-\emph{accelerator governor}, the Jetson's dominant term, is observable
-only where the accelerator exposes a clock: neither NPU offers a
-user-visible clock or load register, so an internal accelerator DVFS
-cannot be ruled out --- but it is not needed to explain these
-measurements: the per-call NPU time we can measure includes the
-host-side wait and queueing inside the runtime (it grows from 6.3 to
-9.3\,ms across the Pi's ladder, and the HTP's infer column spans queue
-waits), and once that share is accounted for, neither stack shows a
-residual that moves with the host duty cycle
---- on the HTP the overlap rungs saturate the loaded per-call service
-time under \texttt{performance} (under the shipped
-\texttt{schedutil}, whose slowed core stretches the call's
-dispatch share, the accelerator still idles about a fifth of each
-period at the best rung; the \emph{infer} column of the
-ladder tables grows in the overlap rungs because it spans queueing
-behind the single serialized caller, not because the accelerator
-slows down; \cref{sec:rubikhtp}). But the governor story does not
-disappear on the NPU boards, it moves: on the HTP stack the
-\emph{CPU} governor becomes the largest term (57\% on the matched
-\texttt{full\_w1} rungs), because
-\texttt{schedutil} reads the idleness the accelerator creates and
-down-clocks the very core that feeds the DSP, and every ``NPU'' call
-carries a host dispatch share that grows as the core clock falls. Finally, sustained
-CPU inference introduces a further constraint: the SoC sits at its
-95\,$^\circ$C ceiling and otherwise identical repeats separate
-measurably. The NPU stacks approach the same ceiling under
-\texttt{performance} (91--95\,$^\circ$C). The Pi shows no drift, but on
-the HTP the two heaviest \texttt{performance}-governor overlap rungs
-do: \texttt{full\_w2\_spin} falls from 41.5 to 34.9\,images/s between
-repeats as the SoC climbs from 83 to 95\,$^\circ$C, and
-\texttt{full\_w3} from 42.6 to 37.5, so those two cells mix the
-governor effect with a thermal one (the \texttt{schedutil} rows and
-both sequential ladders show no drift). On the CPU stack the thermal limit is the binding constraint. And \emph{streaming behavior} follows
-capacity on the NPU boards exactly as \cref{sec:stream} predicts
-(\Cref{tab:streamreplication}): the Pi keeps up at every rate under
-either pipeline --- its sequential capacity of 65.7\,images/s already
-exceeds 60\,fps --- while the HTP queues precisely when the arrival
-rate passes the capacity the ladder measured. One latency mechanism
-does not transfer literally. The Jetson's plain overlap holds each
-frame's rows until the next frame is enqueued, adding about one
-arrival period (\cref{sec:stream}); that hold is a property of our
-double-buffered host loop, and it is what the arrival-aware variant
-removes. Neither NPU stack has it: HailoRT delivers each frame's
-results through an asynchronous completion callback, so the Pi's
-overlapped p50 tracks the service time (${\approx}17$\,ms) at every
-rate, and the HTP pipeline submits rows as soon as the serialized
-call returns. There the shipped governor is what inflates latency:
-the slowed feeder core stretches both the call and the host NMS that
-overlaps it, so at 15\,fps the overlapped p50 is 108\,ms under
-\texttt{schedutil} against 42.6\,ms under \texttt{performance}. What
-transfers unchanged is the capacity-margin behavior: queues build
-exactly when the arrival rate passes the ladder-measured capacity.
-For a practitioner the
-ordering of
-\cref{sec:discussion} survives with two amendments: on CPU-inference
-devices, stop after decode overlap with a single worker and spend the
-effort on clocks and cooling; on NPU devices, check the CPU governor
-early --- on the QNN/HTP stack it was the largest single term, while
-the Hailo stack's shipped governor was already within 1\% of the
-pinned one at the best rung.
+The \emph{benchmark-versus-application gap} appears on all four
+stacks: 15\% of the benchmark on the Pi~5, 4.2 versus 13.2\,ms on the
+Jetson, a 254\,ms inference inside a 304\,ms loop on the Rubik CPU,
+and a 28\,ms NPU call inside a 43\,ms loop on the HTP under the
+shipped governor. What fills the gap differs by stack, as summarized at the end of this
+section.
+
+The \emph{host-pipeline ladder} helps on all four stacks, by an amount
+that depends on what else moves with the schedule (best rung versus
+sequential, shipped governor). On the Jetson it
+reaches $6.3\times$ against the naive sequential rung (float input,
+stream synchronization) and $4.3$--$5.3\times$ against the stronger
+sequential variants of \cref{tab:ladder}, because overlap also lifts
+the GPU out of its DVFS floor; the $2.4\times$ headline of
+\cref{sec:intro} uses the locked-clock baseline. The gain is
+$3.3\times$ on the Pi, the most host-bound of the four, and
+$1.3\times$ on the Rubik CPU. On the HTP it is only $1.2\times$,
+because \texttt{schedutil} settles the feeder core near 1\,GHz once the
+pipeline overlaps; fixing the governor first re-opens it to
+$1.5\times$ (\Cref{tab:rubikhtpladder}).
+
+The \emph{wait-policy effect} appears on both asynchronous-handle
+accelerators, through different mechanisms. On the Jetson the spinning
+wait gains 20--25\% on the sequential and prefetch rungs, mediated by
+the CPU governor (\cref{sec:sched}), and nothing on the full
+two-worker pipeline, whose host never idles on the critical path. On
+the Pi it gains 22--29\% on the \emph{best} rung and persists at a
+pinned CPU clock, so it lives in the runtime's wait path. It vanishes
+where no such wait exists: on the Rubik CPU the spinner steals cycles
+from inference, and the HTP's single serial caller waits on a bounded
+queue rather than an async handle.
+
+The \emph{accelerator governor}, the Jetson's dominant term, is
+observable only where the accelerator exposes a clock. Neither NPU
+does; an internal DVFS cannot be ruled out, but none is needed to
+explain the measurements. The measured per-call NPU time includes
+host-side wait and runtime queueing (it grows from 6.3 to 9.3\,ms
+across the Pi's ladder; the HTP's infer column spans queue waits), and
+once that share is accounted for, neither stack shows a residual that
+moves with the host duty cycle. The governor story moves rather than
+disappears: on the HTP the \emph{CPU} governor is the largest term
+(57\% on the matched \texttt{full\_w1} rungs), because
+\texttt{schedutil} down-clocks the feeder core and each call's
+host-dispatch share grows as that clock falls (\cref{sec:rubikhtp}).
+
+\emph{Thermal limits} bind on the Rubik CPU stack, which sits at the
+95\,$^\circ$C ceiling with measurable repeat drift. The NPU stacks
+approach the same ceiling under \texttt{performance}
+(91--95\,$^\circ$C). The Pi shows no drift; the two heaviest
+\texttt{performance} overlap rungs on the HTP do (\texttt{full\_w2\_spin}
+and \texttt{full\_w3}, which falls from 42.6 to 37.5\,images/s between
+repeats), so these two cells mix governor and thermal effects; the
+\texttt{schedutil} rows and both sequential ladders show no drift.
+
+\emph{Streaming} follows capacity on the NPU boards as
+\cref{sec:stream} predicts (\Cref{tab:streamreplication}): the Pi
+keeps up at every rate, since its sequential capacity already exceeds
+60\,fps, and the HTP queues precisely when the arrival rate passes the
+ladder capacity. The Jetson's plain-overlap hold of each frame's rows
+for about one arrival period (\cref{sec:stream}) belongs to the
+harness's double-buffered host loop and does not occur on either NPU
+stack. HailoRT delivers results through an asynchronous completion
+callback, so the Pi's overlapped p50 tracks the service time
+(${\approx}17$\,ms) at every rate, and the HTP pipeline submits rows
+as soon as the serialized call returns. On the HTP the shipped
+governor inflates latency instead, because the slowed feeder core
+stretches both the call and the overlapping host NMS (15\,fps
+overlapped cells).
+
+For a practitioner, the ordering of \cref{sec:discussion} survives
+with two amendments. On CPU-inference devices, stop after decode
+overlap with a single worker and spend the effort on clocks and
+cooling. On NPU devices, check the CPU governor early: on the QNN/HTP
+stack it was the largest single term, while the Hailo stack's shipped
+governor was already within 1\% of the pinned one at the best rung.
 
 \textbf{Answer to RQ5.}
-The findings carry over in outline, not in mechanism. Across all four
+The findings carry over in outline, not in mechanism. On all four
 stacks (Jetson TensorRT, Hailo-8, Rubik CPU, Rubik HTP), isolated
 engine or inference-call measurements understate the end-to-end
-application cost, but for different reasons: on the Jetson the gap is
-a GPU-governor-induced engine slowdown; on the Pi it is host and
-runtime overhead around a fixed-function NPU; on the Rubik CPU it is
-shared CPU resources and thermal saturation; and on the HTP it is the
-CPU-side dispatch share of each call and that share's response to the
-CPU governor. In each case the host-pipeline ladder recovers
-throughput without touching the engine, and streaming queues exactly
-when the arrival rate passes the ladder-measured capacity. Across model architectures
+application cost, for different reasons: a GPU-governor-induced
+engine slowdown on the Jetson (\cref{sec:diagnosis}), host and runtime
+overhead around a fixed-function NPU on the Pi, shared CPU resources
+and thermal saturation on the Rubik CPU, and the CPU-side dispatch
+share of each call and its response to the CPU governor on the HTP.
+In each case the host-pipeline ladder recovers throughput without
+touching the engine, and streaming queues exactly when the arrival
+rate passes the ladder-measured capacity. Across model architectures
 (\cref{sec:generality}), YOLOv10n and YOLO26s (whose engine takes
-$1.6\times$ longer per image)
-reproduce the same schedule effects ($5.6$--$6.9\times$ over the
-Ultralytics predictor), so the conclusions are not specific to YOLO26n.
+$1.6\times$ longer per image) reproduce the same schedule effects
+($5.6$--$6.9\times$ over the Ultralytics predictor), so the
+conclusions are not specific to YOLO26n.
 
 \begin{table*}[t]
 \centering

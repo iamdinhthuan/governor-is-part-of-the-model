@@ -7,9 +7,9 @@ GPU clock $\bar f$, and the prediction $G_{\max} f_{\max}/\bar f$ of
 The gap axis is the requested host idle time (\texttt{--idleTime}), not a
 frame period. Because \texttt{trtexec} pipelines its enqueues, the
 achieved rate (last row pair) implies a mean GPU-idle interval shorter
-than the requested sleep: 3.0, 5.7, 9.4 and 25.4\,ms for YOLO26n where
-the host requests 4, 8, 16 and 33\,ms (1.5, 4.9, 8.1 and 18.0\,ms for
-YOLO26s).}
+than the requested sleep. Where the host requests 4, 8, 16 and 33\,ms,
+this interval is 3.0, 5.7, 9.4 and 25.4\,ms for YOLO26n and 1.5, 4.9,
+8.1 and 18.0\,ms for YOLO26s.}
 \label{tab:dvfs}
 \small
 \setlength{\tabcolsep}{2.2pt}

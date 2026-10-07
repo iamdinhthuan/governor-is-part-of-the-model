@@ -2,12 +2,12 @@
 \centering
 \caption{Streaming at fixed arrival rates (first 1,000 val2017 images, YOLO26n 640,
 default governors, mean of two runs). Latency runs from frame arrival to finished
-detection rows (ms); energy is module input energy per frame (mJ). ``sat.'' marks a pipeline
-that cannot sustain the arrival rate; its queue grows without bound, and the
+detection rows (ms). Energy is module input energy per frame (mJ). ``sat.'' marks a pipeline
+that cannot sustain the arrival rate. Its queue grows without bound, so the
 achieved rate is given instead of latency. $^\dagger$Near-saturated
 cell: the achieved rate is 29.8\,images/s against 30\,fps arrivals in
 both repeats, so the queue drains too slowly to clear between bursts
-and p95 includes the resulting queuing. Idle input power alone amounts to
+and p95 includes the resulting queuing. Idle input power alone is
 312, 156 and 78\,mJ per frame at 15, 30 and 60\,fps.}
 \label{tab:stream}
 \small
