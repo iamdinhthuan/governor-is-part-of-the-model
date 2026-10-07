@@ -40,8 +40,8 @@ DATE = "7 October 2026"
 ZIP_TIME = (2026, 10, 7, 12, 0, 0)
 ENV = dict(os.environ, PATH=TEXBIN + os.pathsep + os.environ["PATH"],
            SOURCE_DATE_EPOCH="1791345600", FORCE_SOURCE_DATE="1")
-TITLE = ("The governor is part of the model: duty-cycle-aware deployment of "
-         "object detectors on edge accelerators")
+TITLE = ("Beyond engine latency: frequency governors and host pipelines in "
+         "object detection on edge accelerators")
 AUTHORS = [
     ("Dinh Thuan Nguyen", "Faculty of Electrical and Electronics Engineering, Ton Duc Thang University, Ho Chi Minh City, Vietnam"),
     ("Lam Phuong Nguyen", "Faculty of Electrical and Electronics Engineering, Ton Duc Thang University, Ho Chi Minh City, Vietnam"),

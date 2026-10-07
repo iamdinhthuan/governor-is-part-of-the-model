@@ -90,11 +90,11 @@ ax.text(mx + 0.31, ly + lh / 2 + 0.47, "restructure\nhost only", ha="center", va
 ax.text(mx + 0.31, ly + lh / 2 - 0.30, "same engine,\nidentical\npredictions", ha="center",
         va="center", fontsize=7.0, color=MUTED, linespacing=1.15)
 
-# ---- right: duty-cycle-aware pipeline ---------------------------------
+# ---- right: restructured host pipeline ---------------------------------
 rx = mx + 0.70
 rw = W - 0.10 - rx
 panel(rx, ly, rw, lh)
-ax.text(rx + 0.12, ly + lh - 0.17, "Duty-cycle-aware host pipeline", fontsize=9.5,
+ax.text(rx + 0.12, ly + lh - 0.17, "Restructured host pipeline", fontsize=9.5,
         fontweight="bold", va="center", color=INK)
 ax.text(rx + 0.12, ly + lh - 0.40, "prefetch, overlap, second decode worker", fontsize=7.6,
         va="center", color=MUTED)

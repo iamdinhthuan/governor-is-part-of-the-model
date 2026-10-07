@@ -1,9 +1,10 @@
-# Artifact: "The governor is part of the model"
+# Artifact: "Beyond engine latency"
 
 Measurement code, raw traces, and paper source for the manuscript
-*The governor is part of the model: duty-cycle-aware deployment of object
-detectors on edge accelerators* (submitted to the Journal of Systems
-Architecture).
+*Beyond engine latency: frequency governors and host pipelines in object
+detection on edge accelerators* (submitted to the Journal of Systems
+Architecture). The repository name and the Zenodo record title keep the
+manuscript's earlier working title, "The governor is part of the model".
 
 ## Boards and software
 
