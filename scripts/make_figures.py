@@ -207,68 +207,78 @@ def load_trace(run: Path, seconds: float = 12.0):
 
 
 def traces():
-    runs = [("uint8_seq_stream", "sequential, stream sync", GREY, (0, (4, 1.5))),
+    runs = [("uint8_seq_stream", "sequential, stream sync", GREY, (0, (3, 1.6))),
             ("uint8_seq_event", "sequential, event sync", VIOLET, "-"),
             ("uint8_prefetch_event", "prefetch", TEAL, "-"),
             ("uint8_overlap_event_w2", "full schedule", BLUE, "-")]
     hyst = json.loads(Path("results/paper/extras.json").read_text())["hysteresis"]
-    fig, axes = plt.subplots(3, 1, figsize=(W1, 4.35),
-                             gridspec_kw={"height_ratios": [1, 1, 1]})
+    fig = plt.figure(figsize=(W1, 4.35))
+    gs = fig.add_gridspec(4, 1, height_ratios=[1.0, 1.0, 0.95, 0.38])
+    ax_clk = fig.add_subplot(gs[0])
+    ax_pow = fig.add_subplot(gs[1], sharex=ax_clk)
+    ax_rel = fig.add_subplot(gs[2])
+    ax_load = fig.add_subplot(gs[3], sharex=ax_rel)
+
+    # The stream-sync trace coincides with the event-sync one at 306 MHz; drawing it
+    # last as a dashed line keeps both visible.
+    order = {"uint8_seq_stream": 4, "uint8_seq_event": 2, "uint8_prefetch_event": 3,
+             "uint8_overlap_event_w2": 3}
     for rung, label, color, ls in runs:
         t, w, mhz = load_trace(RAW / "ladder" / "default" / rung / "r0")
-        axes[0].plot(t, mhz, color=color, linestyle=ls, linewidth=1.2, label=label)
-        axes[1].plot(t, w, color=color, linestyle=ls, linewidth=1.0)
+        ax_clk.plot(t, mhz, color=color, linestyle=ls, linewidth=1.2, zorder=order[rung])
+        ax_pow.plot(t, w, color=color, linestyle=ls, linewidth=1.0, zorder=order[rung])
     idle_d = S["idle"]["default"]["power_w"]["mean"]
     idle_l = S["idle"]["locked"]["power_w"]["mean"]
-    axes[1].axhline(idle_d, color=BLACK, linestyle=":", linewidth=1.0)
-    axes[1].axhline(idle_l, color=RED, linestyle=":", linewidth=1.0)
-    panel(axes[0], "a", "GPU clock, first 12 s of each run")
-    panel(axes[1], "b", "Module input power")
-    axes[0].set_ylabel("GPU clock (MHz)")
-    axes[0].set_ylim(200, 1120)
-    axes[0].set_yticks([306, 500, 750, 1020])
-    floor_lines(axes[0], labels=False)
-    axes[1].set_ylabel("input power (W)")
-    axes[1].set_ylim(3, 18.5)
-    for ax in axes[:2]:
-        ax.set_xlim(0, 12)
-        ax.set_xlabel("time in timed window (s)")
-    handles = [Line2D([], [], color=c, linestyle=ls, linewidth=1.2, label=lab)
-               for _, lab, c, ls in runs]
-    handles += [Line2D([], [], color=BLACK, linestyle=":", linewidth=1.0, label="idle power, default"),
-                Line2D([], [], color=RED, linestyle=":", linewidth=1.0, label="idle power, locked")]
-    fig.legend(handles=handles, loc="outside upper center", ncol=2, handlelength=2.2,
-               fontsize=6.6)
+    ax_pow.axhline(idle_d, color=BLACK, linestyle=":", linewidth=0.9, zorder=1)
+    ax_pow.axhline(idle_l, color=RED, linestyle=":", linewidth=0.9, zorder=1)
+    panel(ax_clk, "a", "GPU clock")
+    panel(ax_pow, "b", "Module input power")
+    ax_clk.set_ylabel("GPU clock (MHz)")
+    ax_clk.set_ylim(200, 1120)
+    ax_clk.set_yticks([306, 500, 750, 1020])
+    floor_lines(ax_clk, labels=False)
+    ax_clk.tick_params(labelbottom=False)
+    ax_pow.set_ylabel("input power (W)")
+    ax_pow.set_ylim(0, 18.5)
+    ax_pow.set_yticks([0, 5, 10, 15])
+    ax_pow.set_xlim(0, 12)
+    ax_pow.set_xlabel("time in timed window (s)")
+    ax_pow.legend(handles=[Line2D([], [], color=BLACK, linestyle=":", linewidth=0.9,
+                                  label="idle, default"),
+                           Line2D([], [], color=RED, linestyle=":", linewidth=0.9,
+                                  label="idle, locked")],
+                  loc="lower right", ncol=2, fontsize=6.3, handlelength=1.6,
+                  borderaxespad=0.15, columnspacing=1.0)
+    fig.legend(handles=[Line2D([], [], color=c, linestyle=ls, linewidth=1.2, label=lab)
+                        for _, lab, c, ls in runs],
+               loc="outside upper center", ncol=2, handlelength=2.0, fontsize=6.6,
+               columnspacing=1.4)
 
-    ax3 = axes[2]
-    ax3b = ax3.twinx()
-    ax3b.spines["right"].set_visible(True)
     for k, run in enumerate(hyst):
         tr = run["trajectory"]
         t = [p[0] for p in tr]
         color = BLUE if k == 0 else TEAL
-        ax3b.plot(t, [p[2] for p in tr], color=color, linewidth=0.6, alpha=0.45)
-        ax3.plot(t, [p[1] for p in tr], color=color, linewidth=1.5, zorder=3)
-    ax3.set_zorder(ax3b.get_zorder() + 1)
-    ax3.patch.set_visible(False)
-    ax3.axvline(0, color=BLACK, linewidth=0.8, linestyle=":")
-    ax3.text(0.06, 215, "lock released", fontsize=6.5, va="bottom", ha="left", color=DARK)
-    ax3.set_ylim(200, 1120)
-    ax3.set_yticks([306, 500, 750, 1020])
-    ax3b.set_ylim(-1.0, 1.05)
-    ax3b.set_yticks([0, 0.5, 1.0])
-    ax3b.spines["right"].set_bounds(0, 1.0)
-    ax3.set_xlabel("time from release (s)")
-    ax3.set_ylabel("GPU clock (MHz)")
-    ax3b.set_ylabel("GPU load")
-    ax3b.yaxis.set_label_coords(1.145, 1.5 / 2.05)  # centre of the bounded 0-1 spine
-    panel(ax3, "c", "Sequential pipeline released from 1020 MHz")
-    handles = [Line2D([], [], color=BLUE, linewidth=1.5, label="release, repeat 1"),
-               Line2D([], [], color=TEAL, linewidth=1.5, label="release, repeat 2"),
-               Line2D([], [], color=GREY, linewidth=0.6, alpha=0.7,
-                      label="load (right axis)")]
-    fig.legend(handles=handles, loc="outside lower center", fontsize=6.5, ncol=3,
-               handlelength=1.6)
+        ax_rel.plot(t, [p[1] for p in tr], color=color, linewidth=1.4, zorder=3 - k,
+                    label=f"repeat {k + 1}")
+        ax_load.plot(t, [p[2] for p in tr], color=color, linewidth=0.7, alpha=0.85)
+    for ax in (ax_rel, ax_load):
+        ax.axvline(0, color=BLACK, linewidth=0.7, linestyle=":", zorder=0)
+    ax_rel.text(-0.06, 640, "lock\nreleased", fontsize=6.3, va="center", ha="right",
+                color=DARK, linespacing=1.0)
+    panel(ax_rel, "c", "Release from a 1020 MHz lock (sequential)")
+    ax_rel.set_ylabel("GPU clock (MHz)")
+    ax_rel.set_ylim(200, 1120)
+    ax_rel.set_yticks([306, 500, 750, 1020])
+    floor_lines(ax_rel, labels=False)
+    ax_rel.tick_params(labelbottom=False)
+    ax_rel.legend(loc="center right", bbox_to_anchor=(1.0, 0.6), fontsize=6.3,
+                  handlelength=1.6, borderaxespad=0.2)
+    ax_load.set_ylim(-0.06, 1.05)
+    ax_load.set_yticks([0, 1])
+    ax_load.set_ylabel("load")
+    ax_load.set_xlim(-1.1, 4.1)
+    ax_load.set_xlabel("time from release (s)")
+    fig.align_ylabels([ax_clk, ax_pow, ax_rel, ax_load])
     finalize(fig, "traces")
 
 
