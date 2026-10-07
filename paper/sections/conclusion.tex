@@ -49,7 +49,7 @@ model is not a property of the model alone. Under the stock governor,
 the same YOLO26n engine costs 4.2\,ms or 13.2\,ms depending on how busy
 the application keeps the GPU. A simple duty-cycle model, with
 inverse-clock engine time, a load-band governor and an idle-plus-marginal
-energy split, describes the measurements. Restructuring only the host pipeline, without locking clocks and at unchanged COCO accuracy, raised throughput $2.4\times$ over the best sequential pipeline with locked clocks and $6.9\times$ over the standard predictor, and cut energy per image $2.6\times$ relative to the latter. The CPU governor takes part in the same loop: a sleeping CUDA wait lowers the host's clock and, through the host, the GPU's. A per-task utilization clamp, set without root privileges, recovers most of this loss. At camera rates
+energy split, describes the measurements. Restructuring only the host pipeline, without locking clocks and at unchanged COCO accuracy, raised throughput $2.4\times$ over the best sequential pipeline with locked clocks and $6.9\times$ over the standard predictor, and cut energy per image $2.6\times$ relative to the latter. The CPU governor takes part in the same loop: a sleeping CUDA wait lowers the host's clock and, through the host, the GPU's. A per-task utilization clamp, set without root privileges, recovers most of this governor-mediated loss, while on the full two-worker schedule a 19\% wait penalty is independent of the governors. At camera rates
 below the pipeline's capacity the picture changes again: idle power
 then sets energy per frame, and the schedule mainly sets latency ---
 until the rate approaches capacity, where the schedule decides energy

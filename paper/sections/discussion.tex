@@ -21,8 +21,10 @@ scenarios~\cite{reddi2020mlperf}. Locking clocks is a useful diagnostic.
 It is not a neutral benchmarking choice, because it removes exactly
 the interactions that dominate behavior under the stock governors a
 device ships with. Under locked clocks
-the synchronization call looks irrelevant, while under the default
-governors it costs a fifth of the throughput. Locking also raises idle
+the synchronization call looks irrelevant on the sequential and
+prefetch schedules, while under the default
+governors it costs a fifth of the throughput; the two-worker schedule
+keeps a 19\% wait penalty in both regimes (\cref{sec:sched}). Locking also raises idle
 power by 1.9\,W, which at camera rates costs more energy than any
 pipeline choice saves (\cref{sec:stream}).
 

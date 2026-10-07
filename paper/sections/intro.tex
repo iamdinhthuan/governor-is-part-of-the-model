@@ -78,8 +78,11 @@ by five research questions:
   clock and CPU time, under both default and locked clocks, and we sweep
   the number of decode workers. Among other effects, we show that the
   choice between two CUDA synchronization calls costs 17--20\% of throughput
-  under the default governors and less than 1\% with locked clocks. A
-  controlled test traces this to the CPU governor: a sleeping wait lets
+  under the default governors. On the sequential and prefetch schedules
+  this loss is governor-mediated and drops below 1\% with locked clocks;
+  on the full two-worker schedule a 19\% wait penalty remains even with
+  clocks locked. A
+  controlled test traces the governor-mediated component to the CPU governor: a sleeping wait lets
   \texttt{schedutil} lower the clock of the host's frequency domain.
   Keeping that domain busy recovers 97\% of the loss, and a per-task utilization clamp~\cite{linux2024uclamp}, set without root privileges, recovers most of it at lower energy. We also
   show that garbage-collection pauses in a typical evaluation loop cost a fast pipeline 7.1\% of its measured throughput.

@@ -96,7 +96,7 @@ cover only the SoC rails; the NPU's own draw is on the unmonitored
 5\,V input. These values therefore compare SoC-side energy only: they
 do not establish whole-system energy rankings, because the unmeasured
 Hailo-8 energy can itself move with the schedule. Within-platform
-comparisons remain meaningful between configurations that share the
+SoC-side comparisons remain meaningful between configurations that share the
 same engine and accuracy; cross-engine energy comparisons on this
 board need module-level power measurement. Streaming at 15, 30 and
 60\,fps is consistent with the Jetson's idle-floor pattern:
@@ -514,8 +514,12 @@ gap} appears on every stack we measured: 431.6 images/s versus
 Jetson, and on the Rubik a 254\,ms inference inside a 304\,ms
 sequential loop on the CPU and, under the shipped governor, a 28\,ms
 NPU call inside a 43\,ms loop on the HTP. These four gaps are not
-all of the same kind: on the Jetson and the Pi the gap is
-same-engine sequential-versus-pipelined host overhead; on the HTP it
+all of the same kind: each compares an isolated engine or
+inference-call benchmark with a sequential application, but the content
+of the difference is stack-specific. On the Jetson it is mostly the
+governor's response to the application's duty cycle
+(\cref{sec:diagnosis}); on the Pi, where the accelerator call is
+fixed-cost, it is the host work around that call; on the HTP it
 additionally contains the host-dispatch share of each accelerator
 call and that share's response to the CPU governor; on the Rubik CPU
 it is bounded by thermal saturation. The \emph{host-pipeline ladder} helps on all four stacks,

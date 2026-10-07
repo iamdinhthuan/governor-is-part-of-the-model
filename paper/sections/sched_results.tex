@@ -115,7 +115,7 @@ sleeping through each completion, the wait delay itself, not the
 clock, binds. The spinning wait remains the stronger option for that
 rung.
 
-\textbf{The penalty is not a GIL artefact.}
+\textbf{The penalty is not explained by GIL switch-interval convoying.}
 One alternative explanation for the sleeping-wait penalty is a convoy
 around CPython's global interpreter lock: the waiting thread holds the
 lock on entry to the blocking call, and other threads wait out the
@@ -125,15 +125,17 @@ a tenfold shorter one (0.5\,ms, set by \texttt{sys.setswitchinterval}
 before any CUDA work, two 2,000-image runs each, identical
 predictions). Throughput was 86.3--89.3 images/s with the default
 interval and 88.9--89.1 with the short one --- a 1.4\% change, within
-the repeat spread of these cells --- so lock convoying is not the
-mechanism. A same-session event-synchronized reference under the same
-locked clocks reaches 107.9--108.4 images/s, so with the clock cascade
-removed the sleeping wait costs this schedule 19\% --- the same
-fraction as on the sequential rungs above. The much larger gap under
-the shipped governors (40.4 images/s, \cref{tab:uclamp2}) is therefore
-the cascade itself: the sleeping wait lowers the CPU clock, the slower
-submission parks the GPU at its 306\,MHz floor, where the engine alone
-takes 12.5\,ms instead of 4.2 (\cref{tab:fixedfreq}).
+the repeat spread of these cells --- which rules out the hypothesized
+switch-interval convoy as the dominant mechanism. A same-session
+event-synchronized reference under the same locked clocks reaches
+107.9--108.4 images/s, so this schedule keeps a 19\% wait penalty even
+with the clock cascade removed --- unlike the sequential and prefetch
+schedules, whose penalty is governor-mediated and vanishes with locked
+clocks (below). The much larger gap under the shipped governors (40.4
+images/s, \cref{tab:uclamp2}) is therefore the cascade amplifying that
+penalty: the sleeping wait lowers the CPU clock, the slower submission
+parks the GPU at its 306\,MHz floor, where the engine alone takes
+12.5\,ms instead of 4.2 (\cref{tab:fixedfreq}).
 
 \begin{table}[t]
 \centering
@@ -162,13 +164,22 @@ full w2  & uclamp &  48.8 & 33.2 & 306 & 11.1 & 141.0 \\
 \end{tabular}
 \end{table}
 
-\textbf{With locked clocks the effect disappears.}
+\textbf{Locking clocks removes the governor-mediated component.}
 \texttt{jetson\_clocks} fixes the CPU clock at its maximum as well as
-the GPU clock. Stream and event synchronization then differ by less than
+the GPU clock. On the sequential and prefetch schedules, stream and
+event synchronization then differ by less than
 1\% (sequential: 90.1 versus 90.4 images/s; prefetch: 158.6 versus 159.4;
-\cref{tab:ladder}). A benchmark run with locked clocks would therefore
-conclude that the choice of synchronization call does not matter, while
-under the default governors it costs a fifth of the throughput.
+\cref{tab:ladder}) --- the roughly 20\% penalty on these schedules is
+governor-mediated. The full two-worker schedule is different: its 19\%
+wait penalty persists with locked clocks (87.8 versus 108.2 images/s,
+above), and the shipped governors amplify it further through the
+cascade. A benchmark run with locked clocks would therefore see no
+synchronization effect on the sequential and prefetch schedules at all,
+while under the default governors the same choice costs a fifth of
+their throughput. The two-worker schedule is the mirror image: a fifth
+lost to the wait itself even at locked clocks, and a further $2.2\times$
+lost to the governors when they are free (40.4 versus 87.8 images/s,
+same sleeping wait).
 
 The contrast between schedules is itself governor-dependent. The full
 two-worker pipeline outperforms the event-synchronized sequential

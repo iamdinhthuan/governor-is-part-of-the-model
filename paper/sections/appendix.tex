@@ -1,5 +1,6 @@
 \section{Compression screening and router details}
 \label{app:compression}
+\suppressfloats[t]
 
 Before the pipeline study, we spent most of our effort on the model.
 \Cref{tab:compression} summarizes the screening. All of it was done on
@@ -7,7 +8,7 @@ a 1,024-image development split of COCO train2017, disjoint from
 val2017, with official COCOeval. Each method was given the same short
 recovery budget: 1,024 training images, five epochs and one seed.
 
-\begin{table}[h]
+\begin{table}[b]
 \centering
 \caption{Compression screening for YOLO26n (development split of 1,024
 train2017 images, one seed, five recovery epochs, TensorRT 10.3). The two

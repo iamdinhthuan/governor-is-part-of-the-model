@@ -131,12 +131,15 @@ on the first 2,000 val2017 images (\cref{tab:sched}).
 \textbf{Answer to RQ2.}
 The decisions that matter are those that change the GPU's duty cycle:
 prefetching ($2.9\times$), overlapping post-processing and adding a
-decode worker (a further $1.5\times$), and how the host waits for the GPU (about a fifth of throughput at
-matched clocks, on every schedule we tested). The last effect acts through the CPU governor: a sleeping wait
-lowers the host's clock, and through the slower host also the GPU's
---- on the two-worker schedule this cascade adds a further $2.2\times$
-on top of the wait penalty itself (40.4 images/s under the shipped
-governors versus 87.8 with locked clocks, same sleeping wait). In-graph preprocessing matters
+decode worker (a further $1.5\times$), and how the host waits for the GPU. The wait penalty has two
+components. On the sequential and prefetch schedules it is
+governor-mediated --- a sleeping wait lets the CPU governor lower the
+host's clock, and through the slower host also the GPU's --- and it
+nearly vanishes when clocks are locked. On the full two-worker schedule
+a 19\% wait penalty remains even with clocks locked, and the shipped
+governors amplify it a further $2.2\times$ on top (40.4 images/s under
+the shipped governors versus 87.8 with locked clocks, same sleeping
+wait). In-graph preprocessing matters
 once the schedule is no longer sequential. Locking clocks substitutes
 for a good schedule only partially (1.8--2.3$\times$ for our
 sequential pipelines, 2.4$\times$ for the Ultralytics predictor) and

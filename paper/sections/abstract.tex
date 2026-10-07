@@ -10,18 +10,18 @@ duty-cycle model describes the measurements: engine time scales with
 the inverse of the clock (3.7\% mean absolute error on a
 fixed-frequency sweep), interior-clock operating points cluster in an
 observed 0.53--0.74 GPU-load range,
-and a sequential pipeline released from the top
+and a pipeline released from the top
 clock falls to the floor in seconds. Restructuring only the host
 pipeline, under default governors and with identical predictions,
 gives $2.4\times$ the throughput of the best sequential pipeline at
 locked maximum clocks. The CPU governor is coupled to the same
 loop: a sleeping CUDA wait lets \texttt{schedutil} lower the host's
-clock and costs a fifth of throughput even at matched clocks; a per-task utilization
-clamp, needing no root privileges, recovers most of it at
-lower energy. At camera rates below capacity, idle power sets energy
+clock and, through slower submission, the GPU's; a per-task utilization
+clamp recovers most of this governor-mediated loss at lower energy,
+while the two-worker pipeline keeps a separate 19\% wait penalty even
+with locked clocks. At camera rates below capacity, idle power sets energy
 per frame and the schedule sets latency. Replications on a
-Raspberry Pi~5 with Hailo-8 NPU and a Qualcomm QCM6490 (CPU and
-Hexagon NPU) show the effect transfers while its mechanism shifts to
-the host side. Edge-detection efficiency should be reported for the
+Raspberry Pi~5 with Hailo-8 NPU and a Qualcomm QCM6490 show the effect
+transfers while its mechanism shifts to the host side. Edge-detection efficiency should be reported for the
 whole pipeline under deployment governors.
 \end{abstract}
