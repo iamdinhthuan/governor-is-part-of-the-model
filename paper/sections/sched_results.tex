@@ -97,7 +97,7 @@ effect propagating onward to the GPU clock through the duty cycle.
 \textbf{The clamp also lifts the GPU clock.}
 If the compounding runs from the host clock to the GPU clock, re-arming
 the CPU governor should restore both. We set \texttt{uclamp.min} to
-1024 on the two rungs where sleeping waits cost the most
+1024 on the prefetch rung, where the sleeping wait costs the most
 (\cref{tab:uclamp2}, two repeats per cell, identical predictions
 throughout). In the prefetch schedule with blocking synchronization
 the clamp raises the feeder cores' clock (1615--1620 to
@@ -107,79 +107,108 @@ submission, and the GPU governor settles at 827--860 instead of
 variants. Engine time falls from 6.3--6.9 to 4.7\,ms and throughput
 rises 34\% (101.8--104.2 to 136.3--140.2 images/s) at unchanged energy
 per image (84.3 to 85.2--86.7\,mJ): the clamp recovers essentially
-all of prefetch's sleeping-wait penalty, without burning a core. In
-the full two-worker schedule with blocking waits the clamp buys 22\%
-(40.0--40.7 to 48.7--48.8 images/s) and 9--10\% lower energy per
-image, but the GPU stays at the 306\,MHz floor --- with two workers
-sleeping through each completion, the wait delay itself, not the
-clock, binds. The spinning wait remains the stronger option for that
-rung.
+all of prefetch's sleeping-wait penalty, without burning a core.
 
-\textbf{The penalty is not explained by GIL switch-interval convoying.}
-One alternative explanation for the sleeping-wait penalty is a convoy
-around CPython's global interpreter lock: the waiting thread holds the
-lock on entry to the blocking call, and other threads wait out the
-5\,ms switch interval. We tested this on the full two-worker schedule
-under locked clocks, comparing the default 5\,ms switch interval with
-a tenfold shorter one (0.5\,ms, set by \texttt{sys.setswitchinterval}
-before any CUDA work, two 2,000-image runs each, identical
-predictions). Throughput was 86.3--89.3 images/s with the default
-interval and 88.9--89.1 with the short one --- a 1.4\% change, within
-the repeat spread of these cells --- which rules out the hypothesized
-switch-interval convoy as the dominant mechanism. A same-session
-event-synchronized reference under the same locked clocks reaches
-107.9--108.4 images/s, so this schedule keeps a 19\% wait penalty even
-with the clock cascade removed --- unlike the sequential and prefetch
-schedules, whose penalty is governor-mediated and vanishes with locked
-clocks (below). The much larger gap under the shipped governors (40.4
-images/s, \cref{tab:uclamp2}) is therefore the cascade amplifying that
-penalty: the sleeping wait lowers the CPU clock, the slower submission
-parks the GPU at its 306\,MHz floor, where the engine alone takes
-12.5\,ms instead of 4.2 (\cref{tab:fixedfreq}).
+\textbf{On the full pipeline the wait policy is free.}
+\label{sec:waitfree}
+The full two-worker schedule tells a simpler story
+(\cref{tab:uclamp2}, bottom). With the decode pool active, a
+\emph{sleeping} event wait --- per-frame events created with
+\texttt{cudaEventBlockingSync} --- reaches 215.5--215.9 images/s,
+indistinguishable from the spinning reference (215.3--215.6), with
+0.3\,ms less process CPU time per image and 0.4--0.5\,mJ less energy
+per image. Locking the clocks changes neither arm (215.1--215.6
+sleeping, 214.7--215.5 spinning), and the clamp has nothing left to
+recover (215.0--215.5). On this schedule the host never goes idle on
+the critical path --- while the main thread sleeps through one
+completion, two decode workers keep the domain busy --- so there is no
+utilization dip for the governor to misread. The wait policy matters
+only where the pipeline actually waits: the sequential rung, where
+each frame sleeps through the engine phase, and prefetch, where a
+single feeder does the same.
+
+This paragraph replaces an earlier, incorrect version of the same
+experiment, which we report for transparency. That version passed
+\texttt{--overlap --workers 2} \emph{without} \texttt{--prefetch}; the
+harness creates its decode pool only under \texttt{--prefetch}, so
+those runs decoded on the main thread and their throughputs
+(40.0--40.7 images/s under default governors, 86.3--89.3 locked) match
+the sequential rung (40.1; 90.1 locked, \cref{tab:ladder}) within
+2\%. What we had reported as a governor-independent 19\% wait penalty
+of the two-worker schedule was the sequential schedule's
+governor-mediated penalty, measured in disguise; a GIL switch-interval
+control run on the same misconfigured cells was equally vacuous. The
+harness now rejects \texttt{--workers} without \texttt{--prefetch},
+and the corrected GIL control on the real two-worker schedule
+(shortening the switch interval tenfold, 5 to 0.5\,ms, under locked
+clocks) changes nothing either: 215.0--215.8 versus
+215.1--215.6 images/s. The corrected runs also confirm the per-frame
+completion boundary as the quantity that matters, next.
+
+\textbf{Stream synchronization costs a quarter --- through its
+boundary, not its wait.}
+With the decode pool active, blocking \emph{stream} synchronization in
+the enqueue-ahead loop still loses 24\% (163.9--165.1 versus
+215.3--215.9 images/s), and it loses the same 24\% with locked clocks
+(163.9--164.7), where the GPU stays pinned at 1020\,MHz. The cost is
+therefore not the sleeping wait and not the governor: it is the
+completion boundary. \texttt{cudaStreamSynchronize} waits for
+\emph{all} work in the stream, including the frame just enqueued, so
+the rows of frame $i{-}1$ are finished only after frame $i$ has
+executed --- the loop degenerates to in-order completion with one
+frame of slack, and the measured enqueue-to-completion window
+stretches from 7.2 to 10.0\,ms. The per-frame event, spinning or
+sleeping, is what preserves the overlap.
 
 \begin{table}[t]
 \centering
-\caption{Utilization clamping on the optimized pipelines (uint8
-engine, blocking stream synchronization, first 2,000 val2017 images,
-default governors, mean of two repeats; a separate session from
-\cref{tab:cpufreq} with its own same-session no-clamp references).
-\emph{GPU ms} is enqueue-to-completion; \emph{GPU MHz} the
-harmonic-mean GPU clock; \emph{CPU ms} the process CPU time per
-image. All runs produced identical predictions (sha256 prefix
-\texttt{df5a48fe35cd}). A locked-clock follow-up session on the same
-two-worker schedule (text) gives 86.3--89.3 images/s without a clamp
-and 107.9--108.4 with event synchronization.}
+\caption{Wait policy and utilization clamping on the optimized
+pipelines (uint8 engine, first 2,000 val2017 images, mean of two
+repeats; identical predictions throughout, sha256 prefix
+\texttt{df5a48fe35cd}). Prefetch rows: blocking stream
+synchronization, default governors, a separate earlier session from
+\cref{tab:cpufreq} with its own same-session references. Full-pipeline
+rows (this session): every arm runs the decode pool
+(\texttt{--prefetch --overlap --workers 2}); ``event, sleeps'' uses
+per-frame events created with \texttt{cudaEventBlockingSync}; locked
+is \texttt{jetson\_clocks}. \emph{CPU ms} the process CPU time per
+image.}
 \label{tab:uclamp2}
-\small
+\footnotesize
 \setlength{\tabcolsep}{2.2pt}
-\begin{tabular}{ll rrrrrr}
+\begin{tabular}{@{}llll rrrr@{}}
 \toprule
-Pipeline & clamp & img/s & GPU ms & GPU MHz & CPU ms & mJ/img \\
+Pipeline & wait & clocks & clamp & img/s & CPU ms & mJ/img \\
 \midrule
-prefetch & --     & 103.0 & 6.6 & 644 & 14.8 & 84.3 \\
-prefetch & uclamp & 138.3 & 4.7 & 844 & 10.7 & 86.0 \\
-full w2  & --     &  40.4 & 37.6 & 306 & 17.6 & 155.3 \\
-full w2  & uclamp &  48.8 & 33.2 & 306 & 11.1 & 141.0 \\
+prefetch & stream, sleeps & default & --     & 103.0 & 14.8 & 84.3 \\
+prefetch & stream, sleeps & default & uclamp & 138.3 & 10.7 & 86.0 \\
+\midrule
+full w2  & event, spins   & default & --     & 215.5 & 10.6 & 72.9 \\
+full w2  & event, sleeps  & default & --     & 215.7 & 10.2 & 72.4 \\
+full w2  & event, sleeps  & default & uclamp & 215.3 & 10.3 & 72.7 \\
+full w2  & event, sleeps  & locked  & --     & 215.3 & 10.3 & 72.8 \\
+full w2  & stream, sleeps & default & --     & 164.8 & 10.2 & 83.3 \\
+full w2  & stream, sleeps & locked  & --     & 164.3 & 10.2 & 83.1 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\textbf{Locking clocks removes the governor-mediated component.}
+\textbf{Locking clocks removes the governor-mediated penalty --- where
+there is one.}
 \texttt{jetson\_clocks} fixes the CPU clock at its maximum as well as
 the GPU clock. On the sequential and prefetch schedules, stream and
 event synchronization then differ by less than
 1\% (sequential: 90.1 versus 90.4 images/s; prefetch: 158.6 versus 159.4;
 \cref{tab:ladder}) --- the roughly 20\% penalty on these schedules is
-governor-mediated. The full two-worker schedule is different: its 19\%
-wait penalty persists with locked clocks (87.8 versus 108.2 images/s,
-above), and the shipped governors amplify it further through the
-cascade. A benchmark run with locked clocks would therefore see no
-synchronization effect on the sequential and prefetch schedules at all,
-while under the default governors the same choice costs a fifth of
-their throughput. The two-worker schedule is the mirror image: a fifth
-lost to the wait itself even at locked clocks, and a further $2.2\times$
-lost to the governors when they are free (40.4 versus 87.8 images/s,
-same sleeping wait).
+governor-mediated. The full two-worker schedule has no wait penalty to
+remove: sleeping and spinning event waits agree within 1\% under both
+governor regimes, and only the wrong synchronization boundary (stream
+sync, above) costs throughput, identically at both clock settings. A
+benchmark run with locked clocks would therefore see no
+synchronization effect on any of these schedules except the
+stream-sync boundary, while under the default governors the sleeping
+wait alone costs a fifth of the sequential and prefetch schedules'
+throughput.
 
 The contrast between schedules is itself governor-dependent. The full
 two-worker pipeline outperforms the event-synchronized sequential

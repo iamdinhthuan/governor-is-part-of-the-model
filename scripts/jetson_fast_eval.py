@@ -28,6 +28,7 @@ from jetson_breakdown import check, cuda_runtime, summary
 
 MAPPED = 2  # cudaHostAllocMapped
 SCHED = {"auto": 0, "spin": 1, "yield": 2, "blocking": 4}  # cudaDeviceSchedule*
+EVENT_BLOCKING = 1  # cudaEventBlockingSync: cudaEventSynchronize sleeps
 
 
 def wait_until(deadline: float) -> None:
@@ -89,6 +90,10 @@ def main() -> None:
                         help="with --overlap: finish in-flight work when the next frame is not ready")
     parser.add_argument("--fps", type=float, default=0.0)
     parser.add_argument("--stream-sync", action="store_true")
+    parser.add_argument("--event-blocking", action="store_true",
+                        help="create per-frame events with cudaEventBlockingSync, so "
+                             "cudaEventSynchronize sleeps on the SAME per-frame "
+                             "boundary the spinning event arm waits on")
     parser.add_argument("--sched", choices=("default", *SCHED), default="default")
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--warmup", type=int, default=20)
@@ -99,6 +104,15 @@ def main() -> None:
         raise RuntimeError("--overlap uses pinned double buffers")
     if args.adaptive and not (args.overlap and args.prefetch):
         raise RuntimeError("--adaptive needs --overlap and --prefetch")
+    if args.event_blocking and args.stream_sync:
+        raise RuntimeError("--event-blocking is an event-sync option")
+    if args.workers > 1 and not args.prefetch:
+        raise RuntimeError("--workers > 1 has no effect without --prefetch: the "
+                           "decode pool is only created with --prefetch")
+    if args.overlap and not args.prefetch:
+        print("warning: --overlap without --prefetch decodes on the main thread; "
+              "with --stream-sync the sync also waits for the frame just "
+              "enqueued, so the pipeline degenerates to sequential", flush=True)
 
     data = json.loads(args.annotations.read_text())
     images = sorted(data["images"], key=lambda item: item["file_name"])
@@ -150,7 +164,11 @@ def main() -> None:
             check(cuda.cudaHostGetDevicePointer(ctypes.byref(di), hi, 0), "devptr")
         else:
             check(cuda.cudaMalloc(ctypes.byref(di), nbytes), "cudaMalloc")
-        check(cuda.cudaEventCreate(ctypes.byref(ev)), "cudaEventCreate")
+        if args.event_blocking:
+            check(cuda.cudaEventCreateWithFlags(ctypes.byref(ev), EVENT_BLOCKING),
+                  "cudaEventCreateWithFlags")
+        else:
+            check(cuda.cudaEventCreate(ctypes.byref(ev)), "cudaEventCreate")
         h_in.append(hi); h_out.append(ho); d_in.append(di); d_out.append(do)
         events.append(ev)
         hosts.append(
@@ -254,6 +272,7 @@ def main() -> None:
         "memory": args.memory,
         "prefetch": args.prefetch,
         "overlap": args.overlap,
+        "event_blocking": args.event_blocking,
         "adaptive_overlap": args.adaptive,
         "gc_disabled": args.no_gc,
         "decode_workers": args.workers if args.prefetch else 0,

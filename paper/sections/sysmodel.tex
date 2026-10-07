@@ -64,7 +64,8 @@ period. If, even at $f_{\min}$, the sequential pipeline's busy fraction
 $G(f_{\min})/T_{\text{seq}}(f_{\min})$ stays below $u_{\text{hi}}$, the
 governor never has a reason to raise the clock. The application then
 runs at the minimum clock indefinitely, even though the GPU is busy
-more than half of the time.
+about half of the time (measured loads 0.46--0.66 at the floor,
+\cref{sec:diagnosis}).
 
 \textbf{Energy.}
 Let $P_{\text{idle}}$ be the module input power with no workload under a

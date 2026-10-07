@@ -28,7 +28,11 @@ Architecture).
     reps) and uclamp on the optimized pipelines,
     `jetson_round5.py`, `gil_exec.py` — EMC readback under
     `jetson_clocks` and the GIL switch-interval control on the full
-    two-worker pipeline,
+    two-worker pipeline (superseded, see `jetson_round6.py`),
+    `jetson_round6.py` — the corrected two-worker wait-policy campaign
+    (sleeping vs spinning event waits via the `--event-blocking` flag of
+    `jetson_fast_eval.py`, uclamp and GIL controls, and the stream-sync
+    completion-boundary pitfall),
     `jetson_run_resolution.py`, `jetson_routed_eval.py`,
     `jetson_run_routing_verify.py` — resolution sweep and the router,
     `jetson_cpufreq_test.py`, `uclamp_exec.py` — CPU-clock experiments,
@@ -64,14 +68,15 @@ Architecture).
 | Table 6 (ladder) | `raw/ladder/` | `make_tables.py` |
 | Table 7 (sync x CUDA device flags) | `raw/sched/` | `make_tables.py` |
 | Table 8 (CPU-clock test) | `raw/cpufreq/`, `raw/uclamp_event/` | `make_tables.py` |
-| Table 9 (uclamp on optimized pipelines) | `raw/uclamp2/` | mean of the two `report.json` files per cell |
+| Table 9 (wait policy and uclamp on optimized pipelines) | `raw/uclamp2/` (prefetch rows), `raw/round6/` (full-w2 rows) | mean of the two `report.json` files per cell |
 | Table 10 (streaming) | `raw/stream/` | `make_tables.py` |
 | Table 11 (other NMS-free detectors) | `raw/generality/` | `make_tables.py` |
 | Table 12 (replication platforms) | manual | `sections/crossplatform.tex` |
 | Tables 13-16 (Pi ladder, Rubik CPU ladder, Rubik HTP ladder, HTP head comparison) | `results/paper/pi.json`, `rubik*.json` | `aggregate_pi.py`, `aggregate_rubik.py` |
 | Table 17 (streaming on the NPU boards) | `results/paper/pi.json`, `rubik*.json` | `aggregate_pi.py`, `aggregate_rubik.py` |
 | Table A.1 (compression screening) | `modal_*.py` runs | manual (see Appendix A) |
-| Round-5 follow-ups (EMC readback under `jetson_clocks`; GIL switch-interval control; locked-clock references quoted in Sec. 6.2 and the Table 9 caption) | `raw/round5/` | `jetson_round5.py`, `gil_exec.py` |
+| Round-5 follow-ups (EMC readback under `jetson_clocks`) | `raw/round5/` | `jetson_round5.py`, `gil_exec.py`. NOTE: the round-5 GIL control and locked full-w2 cells ran `--overlap --workers 2` without `--prefetch`, so no decode pool was created (`decode_workers: 0` in their reports) and they measured the sequential schedule in disguise; Sec. 6.3 reports this erratum and replaces those cells with round 6 |
+| Round-6 follow-ups (real two-worker wait-policy arms: spinning vs `cudaEventBlockingSync` sleeping event waits, uclamp, GIL switch interval, stream-sync boundary; default and locked clocks) | `raw/round6/` | `jetson_round6.py` |
 | Fig. 1 (dvfs) | `raw/dvfs/` | `make_figures.py` |
 | Fig. 2 (operating points) | `raw/load/`, `extras.json` | `make_figures.py` |
 | Fig. 3 (traces + lock-release) | `raw/ladder/`, `extras.json` | `make_figures.py` |

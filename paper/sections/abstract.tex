@@ -1,13 +1,13 @@
 \begin{abstract}
-The deployment cost of NMS-free detectors is usually
+The deployment cost of NMS-free detectors is
 equated with the latency of the compiled engine. We measure the full
 decode-to-detections pipeline of YOLO26n on a Jetson Orin Nano Super:
 module input power, clocks, GPU load and official COCO accuracy
-on all 5,000 val2017 images. The same FP16 TensorRT engine that takes
+on 5,000 val2017 images. The same FP16 TensorRT engine that takes
 4.2\,ms back-to-back takes 13.2\,ms inside a sequential application,
 because the stock GPU governor holds the GPU at minimum clock. A
 duty-cycle model describes the measurements: engine time scales with
-the inverse of the clock (3.7\% mean absolute error on a
+the inverse of the clock (3.7\% mean absolute error, fitted, on a
 fixed-frequency sweep), interior-clock operating points cluster in an
 observed 0.53--0.74 GPU-load range,
 and a pipeline released from the top
@@ -17,9 +17,9 @@ gives $2.4\times$ the throughput of the best sequential pipeline at
 locked maximum clocks. The CPU governor is coupled to the same
 loop: a sleeping CUDA wait lets \texttt{schedutil} lower the host's
 clock and, through slower submission, the GPU's; a per-task utilization
-clamp recovers most of this governor-mediated loss at lower energy,
-while the two-worker pipeline keeps a separate 19\% wait penalty even
-with locked clocks. At camera rates below capacity, idle power sets energy
+clamp recovers most of this loss at lower energy; on the full pipeline
+the wait policy is free (sleeping matches spinning under either
+governor). At camera rates below capacity, idle power sets energy
 per frame and the schedule sets latency. Replications on a
 Raspberry Pi~5 with Hailo-8 NPU and a Qualcomm QCM6490 show the effect
 transfers while its mechanism shifts to the host side. Edge-detection efficiency should be reported for the

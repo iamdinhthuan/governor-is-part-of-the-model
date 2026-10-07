@@ -108,9 +108,13 @@ at each of its eight steps (and the CPU and memory clocks left at
 their shipped settings), the same uint8 engine at zero gap takes
 12.49, 9.54, 7.86, 6.48, 5.68, 5.05, 4.59 and 4.25\,ms at 306, 408,
 510, 612, 714, 816, 918 and 1020\,MHz (\cref{tab:fixedfreq}). A pure
-inverse fit $G=b/f$ reproduces these medians with a mean absolute
+inverse fit $G=b/f$ with $b$ fitted by least squares reproduces these
+medians with a mean absolute
 error of 3.7\% and a systematic residual ($+3.1$\% at the floor,
-$-9.1$\% at the top clock); the two-term fit $G(f)=a+b/f$ removes the
+$-9.1$\% at the top clock); the anchored form of \cref{eq:gf}
+($b=G_{\max}f_{\max}$) is less accurate (6.6\% mean absolute error,
+always overestimating below the top clock), and
+the two-term fit $G(f)=a+b/f$ removes the
 structure ($a=0.63$\,ms, $b=3.63$\,GHz$\cdot$ms, mean absolute error
 0.7\%, all residuals within $\pm1.5$\%). The pinned 306\,MHz time of
 12.49\,ms also closes the loop with the application: adding the
@@ -143,7 +147,10 @@ gap with the GPU pinned at each devfreq step (three 15\,s
 \texttt{trtexec} runs per step; repeat medians agree to 1.1\%). The
 memory clock is logged (constant 2133\,MHz at 306--510\,MHz,
 bistable 2133--3199\,MHz from 612\,MHz up; see text).
-$G(f)=b/f$ uses $b$ from the pinned set; the two-term fit adds
+$G(f)=b/f$ uses the least-squares $b=3.94$\,GHz$\cdot$ms fitted to the
+eight points (anchoring $b=G_{\max}f_{\max}$ at the top point instead,
+as \cref{eq:gf} does, raises the mean absolute error to 6.6\%);
+the two-term fit adds
 a clock-insensitive $a$. Errors are signed, (predicted $-$
 measured)/measured.}
 \label{tab:fixedfreq}
@@ -191,7 +198,8 @@ from the GPU's critical path pushes the load to the top of the band or
 above it, and the clock follows: prefetch with event synchronization settles at a
 harmonic-mean clock of 853\,MHz in the load-logging session and
 881--891\,MHz across the three backlog repeats (the stream-synchronized
-variant of the same rung stays at 655\,MHz, \cref{sec:sched}), and the
+variant of the same rung stays at 655\,MHz in this session and at
+631--694\,MHz in the blocking-sync runs of \cref{sec:sched}), and the
 full schedule, at a measured load of 0.87 (timing estimate 0.90), stays
 at 1020\,MHz.
 
@@ -229,11 +237,12 @@ sequential variants stay at 306\,MHz for the whole run. Prefetch
 climbs in steps from the floor and then moves between about 700 and
 1020\,MHz. The full
 schedule is pinned at 1020\,MHz. Input power follows the clock. Both
-optimized schedules also show short power dips at irregular, on average growing, intervals of 1.9--7.5\,s in the plotted windows. We
+optimized schedules also show short power dips whose spacing grows
+over the run --- from about 1.9 to 4.3\,s between successive dips for
+the full schedule, with longer, less regular intervals (up to about
+7\,s) for prefetch. We
 traced these dips to Python's cyclic garbage collector, whose pauses grow
-as the list of detection rows grows; the stated interval range is measured
-over the full runs, so the largest interval extends past the plotted
-window. We quantify their effect over
+as the list of detection rows grows. We quantify their effect over
 whole runs in \cref{sec:ladder}.
 
 \begin{figure}[t]

@@ -1,0 +1,237 @@
+\begin{thebibliography}{10}
+\expandafter\ifx\csname url\endcsname\relax
+  \def\url#1{\texttt{#1}}\fi
+\expandafter\ifx\csname urlprefix\endcsname\relax\def\urlprefix{URL }\fi
+\expandafter\ifx\csname href\endcsname\relax
+  \def\href#1#2{#2} \def\path#1{#1}\fi
+
+\bibitem{lin2014coco}
+T.-Y. Lin, M.~Maire, S.~Belongie, J.~Hays, P.~Perona, D.~Ramanan,
+  P.~Doll{\'a}r, C.~L. Zitnick, {Microsoft COCO}: Common objects in context,
+  in: European Conference on Computer Vision (ECCV), 2014, pp. 740--755.
+
+\bibitem{li2017pruning}
+H.~Li, A.~Kadav, I.~Durdanovic, H.~Samet, H.~P. Graf, Pruning filters for
+  efficient {ConvNets}, in: International Conference on Learning
+  Representations (ICLR), 2017.
+
+\bibitem{fang2023depgraph}
+G.~Fang, X.~Ma, M.~Song, M.~B. Mi, X.~Wang, {DepGraph}: Towards any structural
+  pruning, in: IEEE/CVF Conference on Computer Vision and Pattern Recognition
+  (CVPR), 2023.
+
+\bibitem{jacob2018quantization}
+B.~Jacob, S.~Kligys, B.~Chen, M.~Zhu, M.~Tang, A.~Howard, H.~Adam,
+  D.~Kalenichenko, Quantization and training of neural networks for efficient
+  integer-arithmetic-only inference, in: IEEE/CVF Conference on Computer Vision
+  and Pattern Recognition (CVPR), 2018, pp. 2704--2713.
+
+\bibitem{hinton2015distilling}
+G.~Hinton, O.~Vinyals, J.~Dean, Distilling the knowledge in a neural network,
+  arXiv preprint arXiv:1503.02531 (2015).
+
+\bibitem{wang2024yolov10}
+A.~Wang, H.~Chen, L.~Liu, K.~Chen, Z.~Lin, J.~Han, G.~Ding, {YOLOv10}:
+  Real-time end-to-end object detection, in: Advances in Neural Information
+  Processing Systems (NeurIPS), 2024.
+
+\bibitem{jocher2026yolo26}
+G.~Jocher, J.~Qiu, M.~Liu, S.~Lyu, F.~C. Akyon, M.~E. Kalfaoglu, Ultralytics
+  {YOLO26}: Unified real-time end-to-end vision models, arXiv:2606.03748
+  [cs.CV] (2026).
+
+\bibitem{ultralytics2026yolo26}
+{Ultralytics}, Ultralytics {YOLO26} documentation,
+  \url{https://docs.ultralytics.com/models/yolo26/}, software release 8.4.172
+  used in this work (2026).
+
+\bibitem{linux2024uclamp}
+{The Linux Kernel Documentation}, Utilization clamping,
+  \url{https://docs.kernel.org/scheduler/sched-util-clamp.html}, accessed
+  2026-10-05 (2024).
+
+\bibitem{carion2020detr}
+N.~Carion, F.~Massa, G.~Synnaeve, N.~Usunier, A.~Kirillov, S.~Zagoruyko,
+  End-to-end object detection with transformers, in: European Conference on
+  Computer Vision (ECCV), 2020, pp. 213--229.
+
+\bibitem{zhao2024rtdetr}
+Y.~Zhao, W.~Lv, S.~Xu, J.~Wei, G.~Wang, Q.~Dang, Y.~Liu, J.~Chen, {DETRs} beat
+  {YOLOs} on real-time object detection, in: IEEE/CVF Conference on Computer
+  Vision and Pattern Recognition (CVPR), 2024.
+
+\bibitem{zhang2021nnmeter}
+L.~L. Zhang, S.~Han, J.~Wei, N.~Zheng, T.~Cao, Y.~Yang, Y.~Liu, {nn-Meter}:
+  Towards accurate latency prediction of deep-learning model inference on
+  diverse edge devices, in: ACM International Conference on Mobile Systems,
+  Applications, and Services (MobiSys), 2021.
+
+\bibitem{tang2019gpudvfs}
+Z.~Tang, Y.~Wang, Q.~Wang, X.~Chu, The impact of {GPU} {DVFS} on the energy and
+  performance of deep learning: An empirical study, in: Proceedings of the
+  Tenth ACM International Conference on Future Energy Systems (e-Energy), 2019.
+
+\bibitem{nabavinejad2022batching}
+S.~M. Nabavinejad, S.~Reda, M.~Ebrahimi, Coordinated batching and {DVFS} for
+  {DNN} inference on {GPU} accelerators, IEEE Transactions on Parallel and
+  Distributed Systems 33~(10) (2022).
+
+\bibitem{kim2021ztt}
+S.~Kim, K.~Bin, S.~Ha, K.~Lee, S.~Chong, {zTT}: Learning-based {DVFS} with zero
+  thermal throttling for mobile devices, in: ACM International Conference on
+  Mobile Systems, Applications, and Services (MobiSys), 2021.
+
+\bibitem{han2025dvfs}
+Y.~Han, Z.~Nan, S.~Zhou, Z.~Niu, {DVFS}-aware {DNN} inference on {GPUs}:
+  Latency modeling and performance analysis, arXiv preprint arXiv:2502.06295
+  (2025).
+
+\bibitem{zhang2026sparsedvfs}
+Z.~Zhang, Z.~Wu, J.~Liu, L.~Mottola, {SparseDVFS}: Sparse-aware {DVFS} for
+  energy-efficient edge inference, arXiv preprint arXiv:2603.21908 (2026).
+
+\bibitem{pathania2014cpugpu}
+A.~Pathania, Q.~Jiao, A.~Prakash, T.~Mitra, Integrated {CPU-GPU} power
+  management for {3D} mobile games, in: Proceedings of the 51st Annual Design
+  Automation Conference (DAC), 2014.
+\newblock \href {https://doi.org/10.1145/2593069.2593151}
+  {\path{doi:10.1145/2593069.2593151}}.
+
+\bibitem{karzhaubayeva2023cpugpu}
+M.~Karzhaubayeva, A.~Amangeldi, J.-G. Park, {CNN} workloads characterization
+  and integrated {CPU}--{GPU} {DVFS} governors on embedded systems, IEEE
+  Embedded Systems Letters 15~(4) (2023) 202--205.
+\newblock \href {https://doi.org/10.1109/LES.2023.3299335}
+  {\path{doi:10.1109/LES.2023.3299335}}.
+
+\bibitem{gong2024lotus}
+Y.~Gong, Y.~Wu, Z.~Zhan, P.~Zhao, L.~Liu, C.~Wu, X.~Tang, Y.~Wang, Lotus:
+  Learning-based online thermal and latency variation management for two-stage
+  detectors on edge devices, in: 61st ACM/IEEE Design Automation Conference
+  (DAC), 2024.
+\newblock \href {https://doi.org/10.1145/3649329.3657310}
+  {\path{doi:10.1145/3649329.3657310}}.
+
+\bibitem{kang2026emc}
+J.~Kang, Edge-inference governors need memory-clock state, arXiv:2606.16106v3
+  [cs.PF] (2026).
+
+\bibitem{mittal2019jetson}
+S.~Mittal, A survey on optimized implementation of deep learning models on the
+  {NVIDIA} {Jetson} platform, Journal of Systems Architecture 97 (2019)
+  428--442.
+\newblock \href {https://doi.org/10.1016/j.sysarc.2019.01.011}
+  {\path{doi:10.1016/j.sysarc.2019.01.011}}.
+
+\bibitem{hadidi2019edge}
+R.~Hadidi, J.~Cao, Y.~Xie, B.~Asgari, T.~Krishna, H.~Kim, Characterizing the
+  deployment of deep neural networks on commercial edge devices, in:
+  Proceedings of the IEEE International Symposium on Workload Characterization
+  (IISWC), 2019.
+
+\bibitem{richins2020aitax}
+D.~Richins, D.~Doshi, M.~Blackmore, A.~T. Nair, N.~Pathapati, A.~Patel,
+  B.~Daguman, D.~Dobrijalowski, R.~Illikkal, K.~Long, D.~Zimmerman, V.~J.
+  Reddi, {AI} tax: The hidden cost of {AI} data center applications, ACM
+  Transactions on Computer Systems 37~(1--4) (2021) 3:1--3:32.
+\newblock \href {https://doi.org/10.1145/3440689} {\path{doi:10.1145/3440689}}.
+
+\bibitem{chen2026nvjpeg}
+T.~Chen, N.~Alnaasan, J.~Yao, A.~Shafi, H.~Subramoni, D.~K. Panda, Accelerating
+  data preprocessing for efficient vision model inference on {Jetson} edge
+  device, arXiv preprint arXiv:2608.27655 (2026).
+
+\bibitem{prashanthi2023jetson}
+P.~S. K., S.~A. Kesanapalli, Y.~Simmhan, Characterizing the performance of
+  accelerated {Jetson} edge devices for training deep learning models,
+  Proceedings of the ACM on Measurement and Analysis of Computing Systems 7~(1)
+  (2023).
+\newblock \href {https://doi.org/10.1145/3570604} {\path{doi:10.1145/3570604}}.
+
+\bibitem{zhang2026resolution}
+Q.~Zhang, F.~Machida, L.~Carnevali, Input resolution matters: Real-time object
+  detection latency, in: IEEE International Symposium on Modelling, Analysis
+  and Simulation of Computer and Telecommunication Systems (MASCOTS), 2026,
+  arXiv:2609.12920.
+
+\bibitem{reddi2020mlperf}
+V.~J. Reddi, C.~Cheng, D.~Kanter, P.~Mattson, G.~Schmuelling, C.-J. Wu,
+  B.~Anderson, M.~Breughe, M.~Charlebois, W.~Chou, R.~Chukka, C.~Coleman,
+  S.~Davis, P.~Deng, G.~Diamos, J.~Duke, D.~Fick, J.~S. Gardner, I.~Hubara,
+  S.~Idgunji, T.~B. Jablin, J.~Jiao, T.~S. John, P.~Kanwar, D.~Lee, J.~Liao,
+  A.~Lokhmotov, F.~Massa, P.~Meng, P.~Micikevicius, C.~Osborne, G.~Pekhimenko,
+  A.~T.~R. Rajan, D.~Sequeira, A.~Sirasao, F.~Sun, H.~Tang, M.~Thomson, F.~Wei,
+  E.~Wu, L.~Xu, K.~Yamada, B.~Yu, G.~Zhang, A.~Zhong, P.~Zhou, Y.~Zhu, {MLPerf}
+  inference benchmark, in: ACM/IEEE International Symposium on Computer
+  Architecture (ISCA), 2020, pp. 446--459.
+
+\bibitem{jang2020rtod}
+W.~Jang, H.~Jeong, K.~Kang, N.~Dutt, J.-C. Kim, {R-TOD}: Real-time object
+  detector with minimized end-to-end delay for autonomous driving, in: IEEE
+  Real-Time Systems Symposium (RTSS), 2020, arXiv:2011.06372.
+
+\bibitem{chin2019adascale}
+T.-W. Chin, R.~Ding, D.~Marculescu, {AdaScale}: Towards real-time video object
+  detection using adaptive scaling, in: Conference on Machine Learning and
+  Systems (SysML), 2019.
+
+\bibitem{zhu2021drnet}
+M.~Zhu, K.~Han, E.~Wu, Q.~Zhang, Y.~Nie, Z.~Lan, Y.~Wang, Dynamic resolution
+  network, in: Advances in Neural Information Processing Systems (NeurIPS),
+  2021.
+
+\bibitem{nvidia2025jetsonkernel}
+{NVIDIA}, {Jetson Linux} {R36.5.2} public sources, kernel
+  \texttt{linux-tegra-5.15}, driver
+  \texttt{drivers/video/tegra/host/nvhost\_podgov.c},
+  \url{https://developer.nvidia.com/downloads/embedded/l4t/r36_release_v5.2/sources/public_sources.tbz2}
+  (2025).
+
+\bibitem{nvidia2024jetsonperf}
+{NVIDIA}, {Jetson Linux} developer guide {R36.5.2}: Platform power and
+  performance ({Jetson Orin Nano}, {Orin NX} and {AGX Orin} series),
+  \url{https://docs.nvidia.com/jetson/archives/r36.5.2/DeveloperGuide/SD/PlatformPowerAndPerformance/JetsonOrinNanoSeriesJetsonOrinNxSeriesAndJetsonAgxOrinSeries.html}
+  (2026).
+
+\bibitem{hailo2023modelzoo}
+{Hailo}, {Hailo} model zoo: pre-trained models and pre-compiled {HEF} files for
+  {Hailo-8} accelerators, \url{https://github.com/hailo-ai/hailo_model_zoo}
+  (2023).
+
+\bibitem{onnxruntime}
+{Microsoft}, {ONNX Runtime}: cross-platform inference and training accelerator,
+  \url{https://github.com/microsoft/onnxruntime}, version 1.30.0 used in this
+  work, accessed 2026-10-05 (2026).
+
+\bibitem{nvidia2024tensorrt}
+{NVIDIA}, {TensorRT} 10.3 developer guide,
+  \url{https://docs.nvidia.com/deeplearning/tensorrt/} (2024).
+
+\bibitem{python2024gc}
+{Python Software Foundation}, Design of {CPython}'s garbage collector ({Python}
+  developer's guide),
+  \url{https://devguide.python.org/internals/garbage-collector/} (2024).
+
+\bibitem{nvidia2024cuda}
+{NVIDIA}, {CUDA} runtime {API}: Device management (cudasetdeviceflags),
+  \url{https://docs.nvidia.com/cuda/cuda-runtime-api/} (2024).
+
+\bibitem{linux2024cpufreq}
+R.~J. Wysocki, {CPU} performance scaling ({Linux} kernel documentation,
+  \texttt{schedutil} governor),
+  \url{https://docs.kernel.org/admin-guide/pm/cpufreq.html}, living document,
+  accessed 2026-10-05 (2026).
+
+\bibitem{ultralytics2023yolov8}
+{Ultralytics}, Ultralytics {YOLOv8} documentation,
+  \url{https://docs.ultralytics.com/models/yolov8/}, accessed 2026-10-05
+  (2023).
+
+\bibitem{nguyen2026dataset}
+D.~T. Nguyen, L.~P. Nguyen, V.~H. Nguyen, S.~V. Quang, M.~R. Elara, A.~V. Le,
+  Raw measurement data: {T}he governor is part of the model ({YOLO26n}
+  edge-inference campaigns), [dataset] (2026).
+\newblock \href {https://doi.org/10.5281/zenodo.23185860}
+  {\path{doi:10.5281/zenodo.23185860}}.
+
+\end{thebibliography}

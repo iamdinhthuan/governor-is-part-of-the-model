@@ -1,0 +1,16 @@
+{
+  "r0/report.json": {
+    "img_s": 164.67846388617758,
+    "cpu_ms": 10.119949915151514,
+    "decode_workers": 2,
+    "sync": "stream",
+    "event_blocking": false
+  },
+  "r1/report.json": {
+    "img_s": 163.92508326020047,
+    "cpu_ms": 10.243273858585859,
+    "decode_workers": 2,
+    "sync": "stream",
+    "event_blocking": false
+  }
+}

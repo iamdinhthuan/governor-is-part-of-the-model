@@ -97,7 +97,7 @@ def dvfs():
     fig.legend(handles, names, fontsize=6, loc="upper center", ncol=2, columnspacing=0.8,
                handlelength=1.6, handletextpad=0.3)
     fig.tight_layout(pad=0.3, rect=(0, 0, 1, 0.8))
-    fig.savefig(FIG / "dvfs.pdf")
+    fig.savefig(FIG / "dvfs.pdf", bbox_inches="tight")
 
 
 STREAM_PIPES = [("ultra", "Ultralytics"), ("float_seq_stream", "float, seq"),
@@ -204,7 +204,7 @@ def resolution():
     axes[1].set_xlabel("mJ / image")
     for ax in axes:
         ax.grid(linewidth=0.3, alpha=0.5)
-    axes[0].set_xlim(0, 250)
+    axes[0].set_xlim(0, 268)
     handles, labels = axes[0].get_legend_handles_labels()
     fig.legend(handles, labels, fontsize=5, loc="upper center", ncol=3,
                columnspacing=0.7, handlelength=1.4)

@@ -44,9 +44,9 @@ predictor on a backlog, uses only 2.5\% less at 30\,fps (195.7 versus
 200.7\,mJ). Only at 60\,fps, where the slow pipelines saturate, does
 the schedule decide energy again: 117--123\,mJ for the pipelines that
 keep up, against 151--194\,mJ for those that do not, measured per
-processed frame. This is the behavior described by \cref{eq:stream}. Using the idle power and the marginal energy measured on the backlog, \cref{eq:stream} with the arrival rate substituted agrees with every below-capacity streaming cell within $-0.2$ to $+11.6$\% (mean $+4.6$\%); the one slightly negative cell (Ultralytics at 15\,fps) lies inside the repeat spread of the backlog marginal estimate. For the three pipelines that saturate at 60\,fps the arrival-rate substitution underestimates by 10--37\%, because a queued pipeline never returns to the idle state the model assumes; substituting each pipeline's measured processed-frame rate instead (as the published aggregates do) brings the error on those cells to 0.3--0.5\%. The agreement below capacity comes mostly from the idle term, which dominates at camera rates. The marginal term alone is overestimated by 21--39\% for the uint8 pipelines running below capacity; for the two float-input pipelines it agrees within $-1.9$ to $+3.3$\%. The clock gap between the backlog and the stream does not explain the uint8 gap: the worst cell (the event-synchronized sequential pipeline at 15\,fps, $+39$\%) runs at 306\,MHz on both. The likely residue is CPU-side --- sleep and wake energy around each frame that the backlog marginal never pays. Whatever its origin, the backlog marginal energy is an empirical upper
+processed frame. This is the behavior described by \cref{eq:stream}. Using the idle power and the marginal energy measured on the backlog, \cref{eq:stream} with the arrival rate substituted agrees with every below-capacity streaming cell within $-0.2$ to $+11.6$\% (mean $+4.6$\%); the two slightly negative cells (the Ultralytics predictor at 15 and 30\,fps, $-0.2$\% each) lie inside the repeat spread of the backlog marginal estimate. For the three pipelines that saturate at 60\,fps the arrival-rate substitution underestimates by 10--37\%, because a queued pipeline never returns to the idle state the model assumes; substituting each pipeline's measured processed-frame rate instead (as the published aggregates do) brings the error on those cells to 0.3--0.5\%. The agreement below capacity comes mostly from the idle term, which dominates at camera rates. The marginal term alone is overestimated by 21--39\% for the uint8 pipelines running below capacity; for the float-input sequential pipeline and the Ultralytics predictor (which normalizes on the GPU, \cref{sec:ladder}) it agrees within $-1.9$ to $+3.4$\%. The clock gap between the backlog and the stream does not explain the uint8 gap: the worst cell (the event-synchronized sequential pipeline at 15\,fps, $+39$\%) runs at 306\,MHz on both. We cannot attribute the residue from these aggregates --- CPU sleep-state behavior and any inter-frame GPU power gating differ between the two workloads, and the module rail does not separate them. Whatever its origin, the backlog marginal energy is an empirical upper
 envelope for the streaming marginal energy in every uint8 configuration we
-measured, and is within 2--3\% of it for the float-input ones, not a prediction of it. At 15 and 30\,fps the GPU runs at about 306\,MHz in all
+measured, and lies within $-2$ to $+4$\% of it for the other two pipelines, not a prediction of it. At 15 and 30\,fps the GPU runs at about 306\,MHz in all
 pipelines, so the marginal energy per frame is lower than on the
 backlog, where the optimized pipelines run at about 1\,GHz. In this
 regime the governor does what it is designed to do.
@@ -74,6 +74,19 @@ Plain prefetch keeps up at 60\,fps, but its p95 rises to 99.3\,ms. At
 60\,fps the governor runs prefetch at about 410\,MHz, so its margin
 over the arrival rate is small and transient stalls build queues.
 
+The sequential pipeline's per-frame cost also depends on the arrival
+rate. Its median falls from 27.4\,ms at 15\,fps to 21.6\,ms at
+30\,fps, although the work per frame is the same, and its CPU time per
+frame rises from 23.5\,ms at 30\,fps to 29.4\,ms at 15\,fps. The CPU
+clock was logged in these runs and does not explain this: the fastest
+core averages 1705\,MHz at 15\,fps and 1682\,MHz at 30\,fps. That
+statistic tracks the domain's fastest core, not necessarily the core
+the waiting thread runs on, so a per-core effect remains possible ---
+but as measured, the clocks give no support to the down-clocking
+mechanism of \cref{sec:sched} here, and the extra CPU time per frame
+at the lower rate is at least as consistent with per-frame sleep/wake
+overhead.
+
 The arrival-aware variant combines the two behaviors. When the next
 frame is not yet available, it finishes the in-flight frame instead of
 holding it. When frames queue up, it overlaps as before. Its p95 latency is within 7.4\,ms of the best pipeline at every rate (p95 33.1, 33.2 and 40.6\,ms at
@@ -81,16 +94,6 @@ holding it. When frames queue up, it overlaps as before. Its p95 latency is with
 41\,ms at all three rates, and its energy is within 0.4--4.3\% of the
 full pipeline. Its predictions are byte-identical to the other uint8
 pipelines.
-
-The latency of the sequential pipeline also depends on the CPU
-governor. Its median falls from 27.4\,ms at 15\,fps to 21.6\,ms at
-30\,fps, although the work per frame is the same. At the lower rate the
-CPU is idle for longer between frames, and its CPU time per frame rises
-from 23.5\,ms at 30\,fps to 29.4\,ms at 15\,fps. This is
-consistent with \cref{sec:sched}'s backlog finding ---
-\texttt{schedutil} lowers the clock while the waiting thread sleeps
---- but we did not log the CPU clock in the streaming runs, so we
-offer it as a plausible mechanism rather than a demonstrated one.
 
 \textbf{Answer to RQ3.}
 At camera rates below a pipeline's capacity, energy per frame is
