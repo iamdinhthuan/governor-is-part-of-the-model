@@ -9,7 +9,7 @@ core that runs the feeder thread. Run-to-run throughput spread exceeds 3\% only 
 \label{tab:sched}
 \small
 \setlength{\tabcolsep}{2.4pt}
-\begin{tabular}{lll rrrrrrr}
+\begin{tabular*}{\textwidth}{@{\extracolsep{\fill}}lll rrrrrrr@{}}
 \toprule
 Mode & Sync & Flag & img/s & mJ & W & GPU MHz & CPU MHz & CPU ms & Enq.$\to$done ms \\
 \midrule
@@ -26,5 +26,5 @@ prefetch & stream & auto & 107.4 & 83.8 & 9.01 & 674 & 1647 & 14.2 & 6.25 \\
  &  & spin & 140.5 & 86.7 & 12.18 & 862 & 1728 & 13.1 & 4.62 \\
  &  & blocking & 140.5 & 86.8 & 12.20 & 862 & 1728 & 13.1 & 4.63 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \end{table*}

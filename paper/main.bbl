@@ -81,6 +81,13 @@ S.~Kim, K.~Bin, S.~Ha, K.~Lee, S.~Chong, {zTT}: Learning-based {DVFS} with zero
   thermal throttling for mobile devices, in: ACM International Conference on
   Mobile Systems, Applications, and Services (MobiSys), 2021.
 
+\bibitem{zhou2023cpufreq}
+T.~Zhou, M.~Lin, {CPU} frequency scheduling of real-time applications on
+  embedded devices with temporal encoding-based deep reinforcement learning,
+  Journal of Systems Architecture 142 (2023) 102955.
+\newblock \href {https://doi.org/10.1016/j.sysarc.2023.102955}
+  {\path{doi:10.1016/j.sysarc.2023.102955}}.
+
 \bibitem{han2025dvfs}
 Y.~Han, Z.~Nan, S.~Zhou, Z.~Niu, {DVFS}-aware {DNN} inference on {GPUs}:
   Latency modeling and performance analysis, arXiv preprint arXiv:2502.06295
@@ -122,6 +129,12 @@ S.~Mittal, A survey on optimized implementation of deep learning models on the
   428--442.
 \newblock \href {https://doi.org/10.1016/j.sysarc.2019.01.011}
   {\path{doi:10.1016/j.sysarc.2019.01.011}}.
+
+\bibitem{mittal2019gpusurvey}
+S.~Mittal, S.~Vaishay, A survey of techniques for optimizing deep learning on
+  {GPUs}, Journal of Systems Architecture 99 (2019) 101635.
+\newblock \href {https://doi.org/10.1016/j.sysarc.2019.101635}
+  {\path{doi:10.1016/j.sysarc.2019.101635}}.
 
 \bibitem{hadidi2019edge}
 R.~Hadidi, J.~Cao, Y.~Xie, B.~Asgari, T.~Krishna, H.~Kim, Characterizing the

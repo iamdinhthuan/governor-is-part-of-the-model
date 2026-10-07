@@ -30,7 +30,8 @@ effect of GPU core and memory frequencies on the time and energy of
 deep learning workloads differs across networks~\cite{tang2019gpudvfs}. Nabavinejad et al.\ chose batch size and
 GPU frequency jointly for inference under latency limits~\cite{nabavinejad2022batching}.
 Other DVFS work on mobile and edge processors learns frequency policies
-that avoid throttling~\cite{kim2021ztt}, models GPU latency under
+that avoid throttling~\cite{kim2021ztt} or meet the soft deadlines of
+periodic tasks on embedded CPUs~\cite{zhou2023cpufreq}, models GPU latency under
 DVFS~\cite{han2025dvfs}, or controls frequency per operator on
 Jetson-class devices~\cite{zhang2026sparsedvfs}. SparseDVFS is
 motivated by the antagonistic effect of the stock CPU and GPU governors
@@ -58,7 +59,9 @@ no root privileges on the test system.
 
 \textbf{Characterization of edge inference.}
 Mittal surveyed optimized deep learning on Jetson devices, covering
-precision, framework and power-mode choices~\cite{mittal2019jetson}.
+precision, framework and power-mode choices~\cite{mittal2019jetson}, and
+Mittal and Vaishay surveyed GPU-side optimizations of deep learning more
+broadly~\cite{mittal2019gpusurvey}.
 Hadidi et al.\ compared frameworks and devices for edge inference and
 found that, for the same model, the framework changes inference time
 and energy considerably~\cite{hadidi2019edge}. These studies
