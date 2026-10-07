@@ -15,6 +15,22 @@ from a one-to-one head, so the host only decodes the image and converts
 a few hundred output rows. With post-processing nearly gone, the engine
 benchmark should predict the application.
 
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figs/framework.pdf}
+\caption{Overview of the study. (a) The detection pipeline, with the
+stage symbols of \cref{sec:sysmodel}, and the cumulative schedule
+ladder of \cref{sec:ladder}; every scheduling step keeps the predictions
+byte-identical. (b) The feedback loop described by the duty-cycle
+model. The host schedule sets the period $T$ and thus the GPU duty
+cycle $u$. When $u$ lies below the governor's load band, the GPU clock
+falls and engine time grows. A sleeping CUDA wait also lets the CPU
+governor lower the host clock, which lengthens $T$. (c) Quantities
+measured on every run and the three boards of the study
+(\cref{sec:setup,sec:crossplatform}).}
+\label{fig:framework}
+\end{figure*}
+
 Measurements on an NVIDIA Jetson Orin Nano Super show that it does not.
 Run back-to-back, the FP16 TensorRT engine of YOLO26n takes 4.2\,ms per
 inference. In a conventional sequential application that decodes a
@@ -117,8 +133,10 @@ five research questions:
   on the critical path.
 \end{enumerate}
 
-This paper does not propose a new detector, compression method or
-governor, and pipelining itself is standard practice. Its contribution
+\Cref{fig:framework} gives an overview of the pipeline, the feedback
+loop and the measurement setup. This paper does not propose a new
+detector, compression method or governor, and pipelining itself is
+standard practice. Its contribution
 is the measurement and its explanation. On this class of device, the
 interaction between the host pipeline and the frequency governor
 determines more of the end-to-end cost than the model-level choices

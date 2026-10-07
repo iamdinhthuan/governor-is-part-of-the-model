@@ -36,11 +36,11 @@ pipeline, or in \texttt{trtexec}, does not carry over to an optimized one.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figs/resolution.pdf}
-\caption{COCO val2017 AP against throughput (images/s) and energy per
-image (mJ) for
+\caption{COCO val2017 AP against throughput (images/s, log axis, so
+equal distances are equal ratios) and energy per image (mJ) for
 static 512/576/640 YOLO26n engines, default governors, mean of two runs
 (whiskers: repeat min/max; labels: input size).
-In the full pipeline (squares), lower resolution buys only $2$--$4$\%
+Circles: naive float sequential pipeline. In the full pipeline (squares), lower resolution buys only $2$--$4$\%
 throughput because the pipeline is limited by the main thread, not by
 GPU throughput; the GPU already runs at its maximum clock. Disabling
 CPython's cyclic GC (triangles, identical predictions) raises all three

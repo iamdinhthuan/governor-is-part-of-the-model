@@ -77,13 +77,14 @@ Architecture).
 | Table A.1 (compression screening) | `modal_*.py` runs | manual (see Appendix A) |
 | Round-5 follow-ups (EMC readback under `jetson_clocks`) | `raw/round5/` | `jetson_round5.py`, `gil_exec.py`. NOTE: the round-5 GIL control and locked full-w2 cells ran `--overlap --workers 2` without `--prefetch`, so no decode pool was created (`decode_workers: 0` in their reports) and they measured the sequential schedule in disguise. They are superseded by round 6 and not used in the paper (see Errata) |
 | Round-6 follow-ups (real two-worker wait-policy arms: spinning vs `cudaEventBlockingSync` sleeping event waits, uclamp, GIL switch interval, stream-sync boundary; default and locked clocks) | `raw/round6/` | `jetson_round6.py` |
-| Fig. 1 (dvfs) | `raw/dvfs/` | `make_figures.py` |
-| Fig. 2 (operating points) | `raw/load/`, `extras.json` | `make_figures.py` |
-| Fig. 3 (traces + lock-release) | `raw/ladder/`, `extras.json` | `make_figures.py` |
-| Fig. 4 (schedule timeline) | schematic; measured stage medians (Table 3) | `make_figures.py` |
-| Fig. 5 (ladder bars) | `raw/ladder/`, `results/paper/summary.json` | `make_figures.py` |
-| Fig. 6 (stream) | `raw/stream/` | `make_figures.py` |
-| Fig. 7 (resolution) | `raw/resolution/` | `make_figures.py` |
+| Fig. 1 (framework overview) | schematic; numbers from the paper text | `make_figures.py` (`framework`) |
+| Fig. 2 (dvfs) | `raw/dvfs/` | `make_figures.py` |
+| Fig. 3 (operating points) | `raw/load/`, `extras.json` | `make_figures.py` |
+| Fig. 4 (traces + lock-release) | `raw/ladder/`, `extras.json` | `make_figures.py` |
+| Fig. 5 (schedule timeline) | schematic; measured stage medians (Table 3) | `make_figures.py` |
+| Fig. 6 (ladder bars) | `raw/ladder/`, `results/paper/summary.json` | `make_figures.py` |
+| Fig. 7 (stream) | `raw/stream/` | `make_figures.py` |
+| Fig. 8 (resolution) | `raw/resolution/` | `make_figures.py` |
 
 ## Verification
 

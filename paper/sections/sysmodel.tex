@@ -5,8 +5,8 @@ A deliberately simple model organizes the measurements. Its three
 parts describe how engine time depends on the GPU clock, how each
 pipeline schedule sets the GPU's duty cycle, and how the governor picks
 a clock for that duty cycle. A fourth relation splits energy into an
-idle floor and a marginal part. Each part is checked against
-measurements in \cref{sec:diagnosis,sec:ladder,sec:stream}.
+idle floor and a marginal part. \Cref{fig:framework}(b) summarizes the loop. Each part is checked
+against measurements in \cref{sec:diagnosis,sec:ladder,sec:stream}.
 
 \textbf{Pipeline stages.}
 For each image, the CPU runs a decode-and-letterbox stage $D$ and,

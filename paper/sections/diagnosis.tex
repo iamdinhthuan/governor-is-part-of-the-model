@@ -51,7 +51,9 @@ is measured in \cref{sec:stream}.
 \caption{Median GPU compute time of the uint8 FP16 engines in
 \texttt{trtexec} (left) and mean sampled GPU clock (right) versus a
 forced idle gap between inferences. Mean of two 15\,s runs per point.
-Default governors (blue) versus \texttt{jetson\_clocks} (red). The
+Default governors (blue, filled markers) versus
+\texttt{jetson\_clocks} (red, open markers); circles and solid lines
+show YOLO26n, squares and dashed lines YOLO26s. The
 gap is host idle time (\texttt{--idleTime}), not a frame period.}
 \label{fig:dvfs}
 \end{figure}
@@ -220,13 +222,13 @@ effect over whole runs is quantified in \cref{sec:ladder}.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figs/traces.pdf}
-\caption{GPU clock (top) and module input power (middle) during the first 12\,s
+\caption{(a) GPU clock and (b) module input power during the first 12\,s
 of four YOLO26n application runs on val2017 under default governors
 (20\,Hz samples); the two sequential traces coincide at 306\,MHz in the
-top panel. Bottom: the lock-then-release experiment. The sequential
+top panel. (c) The lock-then-release experiment. The sequential
 pipeline is started with the GPU clock locked at 1020\,MHz, and the lock
-is released at $t{=}0$ (dotted line). Clock (solid) and driver GPU load
-(dashed, right axis) of two repeats fall to the 306\,MHz floor within
+is released at $t{=}0$ (dotted line). Clock (thick lines) and driver GPU load
+(thin lines, right axis) of two repeats fall to the 306\,MHz floor within
 about 3.4\,s.}
 \label{fig:traces}
 \end{figure}
